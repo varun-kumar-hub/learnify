@@ -147,14 +147,30 @@ export async function deleteSubject(id: string) {
 
 export async function getSubject(id: string) {
     const supabase = await createClient()
-    const { data, error } = await supabase
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: "Authentication required. Please log in." }
+    }
+
+    // DEBUG: First try to find the subject IGNORING user_id to see if it exists at all
+    const { data: globalSubject, error: globalError } = await supabase
         .from('subjects')
-        .select('*')
+        .select('id, user_id, title')
         .eq('id', id)
         .single()
 
-    if (error) return null
-    return data
+    if (globalError || !globalSubject) {
+        return { error: `Subject ID ${id} does not exist in the database.` }
+    }
+
+    // Check ownership
+    if (globalSubject.user_id !== user.id) {
+        return { error: `Access Denied. Subject Owner: ${globalSubject.user_id}, Current User: ${user.id}` }
+    }
+
+    // If we get here, it exists and we own it. Fetch full data.
+    return { data: globalSubject, error: null }
 }
 
 export async function getSubjectTopics(subjectId: string) {
@@ -226,7 +242,7 @@ export async function generateTopics(subjectId: string) {
 
     // 3. Call Gemini
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" })
 
     const prompt = `
         Act as an expert curriculum designer.
@@ -332,7 +348,7 @@ export async function generateContent(topicId: string) {
 
     // 3. Call Gemini
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" })
 
     const prompt = `
         Act as an expert tutor.
@@ -463,7 +479,7 @@ export async function chatWithTutor(topicId: string, messages: { role: string, c
 
     // 3. Gemini Chat
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" })
 
     // Construct history for Gemini
     // Ensure roles are mapped correctly (user -> user, model -> model)

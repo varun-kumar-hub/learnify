@@ -1,15 +1,42 @@
 import { getSubject, getSubjectTopics } from "@/app/actions"
 import { GraphVisualizer } from "@/components/graph-visualizer"
 import { GenerateGraphButton } from "@/components/generate-graph-button"
-import { ArrowLeft, Brain, Share2 } from "lucide-react"
+import { ArrowLeft, Brain, Share2, AlertTriangle } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import { createClient } from "@/utils/supabase/server"
 
-export default async function SubjectPage({ params }: { params: { id: string } }) {
-    const subject = await getSubject(params.id)
-    if (!subject) redirect('/dashboard')
+// Next.js 15+ convention: params is a promise
+export default async function SubjectPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-    const { nodes, edges } = await getSubjectTopics(params.id)
+    if (!user) {
+        return redirect('/login')
+    }
+
+    const { data: subject, error } = await getSubject(id)
+
+    if (error || !subject) {
+        return (
+            <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 text-center">
+                <div className="p-4 rounded-full bg-red-500/10 mb-4">
+                    <AlertTriangle className="h-8 w-8 text-red-500" />
+                </div>
+                <h1 className="text-2xl font-bold mb-2">Subject Not Found</h1>
+                <p className="text-red-400 font-mono text-sm mb-4 max-w-md bg-red-950/30 p-2 rounded border border-red-900/50">
+                    {error || "Unknown Error"}
+                </p>
+                <p className="text-xs text-zinc-600 font-mono mb-8">Ref: {id}</p>
+                <Link href="/" className="px-6 py-2 bg-white text-black rounded-lg hover:bg-white/90 font-medium transition-colors">
+                    Back to Dashboard
+                </Link>
+            </div>
+        )
+    }
+
+    const { nodes, edges } = await getSubjectTopics(id)
     const isEmpty = nodes.length === 0
 
     return (
@@ -30,6 +57,14 @@ export default async function SubjectPage({ params }: { params: { id: string } }
             </header>
 
             <main className="max-w-7xl mx-auto px-6 py-8 h-[calc(100vh-4rem)] flex flex-col">
+                {/* DEBUG OVERLAY */}
+                <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] bg-red-600 text-white px-6 py-4 rounded-xl font-bold text-center shadow-2xl pointer-events-none opacity-80 hover:opacity-100 transition-opacity">
+                    <p>DEBUG MODE</p>
+                    <p>Nodes: {nodes?.length ?? 'undefined'}</p>
+                    <p>Edges: {edges?.length ?? 'undefined'}</p>
+                    <p>ID: {id}</p>
+                </div>
+
                 {isEmpty ? (
                     <div className="flex-1 flex flex-col items-center justify-center space-y-6 border border-dashed border-white/10 rounded-3xl bg-white/5 m-4">
                         <div className="p-4 rounded-full bg-blue-500/10">
@@ -40,7 +75,7 @@ export default async function SubjectPage({ params }: { params: { id: string } }
                             <p className="text-muted-foreground mt-2 mb-8">
                                 This subject is empty. Use AI to generate a structured learning path with topics and dependencies.
                             </p>
-                            <GenerateGraphButton subjectId={params.id} />
+                            <GenerateGraphButton subjectId={id} />
                         </div>
                     </div>
                 ) : (

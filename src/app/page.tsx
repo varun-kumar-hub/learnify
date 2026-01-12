@@ -1,9 +1,11 @@
+import { Brain } from 'lucide-react'
 import { createClient } from "@/utils/supabase/server";
 import { GeminiKeyModal } from "@/components/gemini-key-modal";
 import { redirect } from "next/navigation";
 import { getSubjects, getProfile } from "./actions";
 import { SubjectCard } from "@/components/subject-card";
 import { CreateSubjectModal } from "@/components/create-subject-modal";
+import { HeaderActions } from "@/components/header-actions";
 import { SettingsDialog } from "@/components/settings-dialog";
 import { Button } from "@/components/ui/button";
 
@@ -30,11 +32,7 @@ export default async function Dashboard() {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium text-white">{profile?.full_name}</p>
-              <p className="text-xs text-zinc-500">{user.email}</p>
-            </div>
-            <SettingsDialog initialName={profile?.full_name as string} hasKey={profile?.hasKey || false} />
+            <HeaderActions profile={profile} email={user.email || ''} />
           </div>
         </div>
       </nav>
