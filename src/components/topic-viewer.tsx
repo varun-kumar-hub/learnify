@@ -181,32 +181,6 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
                             </ReactMarkdown>
                         </div>
 
-                        {/* Example Block - Redesigned to match "Applied Science" style */}
-                        {section.example && (
-                            <div className="ml-0 md:ml-14 my-10 group/example">
-                                <div className="bg-zinc-900/40 backdrop-blur-sm border border-emerald-500/20 rounded-2xl overflow-hidden shadow-xl transition-all duration-300 hover:border-emerald-500/40 hover:shadow-emerald-500/5">
-                                    <div className="p-6 md:p-8 space-y-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className="h-px flex-1 bg-emerald-500/20" />
-                                            <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-emerald-400">Applied Science</span>
-                                            <div className="h-px flex-1 bg-emerald-500/20" />
-                                        </div>
-                                        <div className="prose prose-invert prose-emerald max-w-none text-zinc-300 leading-relaxed font-light">
-                                            <ReactMarkdown
-                                                remarkPlugins={[remarkGfm]}
-                                                components={{
-                                                    strong: ({ node, ...props }) => <span className="font-bold text-emerald-400" {...props} />,
-                                                    code: ({ node, ...props }) => <code className="bg-emerald-500/10 text-emerald-300 px-1.5 py-0.5 rounded text-sm font-mono border border-emerald-500/20" {...props} />
-                                                }}
-                                            >
-                                                {section.example}
-                                            </ReactMarkdown>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
                         {/* Chart (if present in this section) */}
                         {section.diagram && (
                             <div className="ml-4 md:ml-14 my-8">

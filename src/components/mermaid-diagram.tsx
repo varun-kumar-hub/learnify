@@ -27,9 +27,18 @@ export function MermaidDiagram({ chart }: { chart: string }) {
         const renderChart = async () => {
             if (!chart) return
 
-            // Sanitize chart: fix unquoted labels with parentheses
-            // Regex finds id[Text (Content)] and ensures quotes: id["Text (Content)"]
-            const sanitizedChart = chart.replace(/\[([^"\]]*[\(\)][^"\]]*)\]/g, '["$1"]')
+            // Aggressive sanitization: quote ALL unquoted labels and escape inner quotes
+            let sanitizedChart = chart.trim()
+
+            // 1. Remove markdown wrappers if the AI accidentally included them
+            sanitizedChart = sanitizedChart.replace(/^```mermaid\n?/, '').replace(/\n?```$/, '')
+
+            // 2. Wrap all label contents in quotes if they aren't already, and escape internal quotes
+            // This handles id[Label], id{Label}, id(Label)
+            sanitizedChart = sanitizedChart
+                .replace(/\[(?!"|#)([^\]\n]+)\]/g, (_, p1) => `["${p1.replace(/"/g, "'")}"]`)
+                .replace(/\{(?!"|#)([^}\n]+)\}/g, (_, p1) => `{"${p1.replace(/"/g, "'")} "}`) // Added space to avoid {}} issues
+                .replace(/\((?!"|#)([^)\n]+)\)/g, (_, p1) => `("${p1.replace(/"/g, "'")}")`)
 
             try {
                 const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`

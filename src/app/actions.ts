@@ -372,8 +372,7 @@ export async function generateContent(topicId: string) {
                     "type": "concept",
                     "heading": "1. [Concept Name]",
                     "content": "Concise, clear explanation (approx. 100-150 words). Focus on the core idea. Avoid wall of text.",
-                    "example": "A concrete example (e.g., code snippet, math problem, or case study) demonstrating the concept.",
-                    "diagram": "OPTIONAL: A valid Mermaid.js flowchart string representing this SPECIFIC concept. IMPORTANT: You MUST quote all node labels if they contain spaces or special characters (e.g., 'graph TD; A[\"Main Function\"]-->B[\"Process\"];'). Do not include markdown blocks.",
+                    "diagram": "OPTIONAL: A valid Mermaid.js flowchart string. CRITICAL: You MUST wrap ALL node labels in double quotes (e.g., A[\"My Label\"] or B{\"Decision?\"}). Failure to quote labels with special characters (brackets, parentheses, colons, etc.) will crash the app.",
                     "table": { "headers": ["Col 1", "Col 2"], "rows": [["Val 1", "Val 2"]] } // OPTIONAL: Only if a comparison is needed here.
                 },
                 {
@@ -396,10 +395,9 @@ export async function generateContent(topicId: string) {
         **Constraints:**
         1. **Conciseness:** Keep each section tight (around 6-7 lines). Get straight to the point.
         2. **Visuals:** You MUST include at least **2 diagrams** (Mermaid) and **1 table** across the sections.
-        3. **Examples:** At least one of the sections MUST have a detailed \`example\` provided.
-        4. **Flow:** ensure the sections transition logically.
-        5. **Tone:** Academic, patient, and authoritative.
-        6. **Quantity:** Generate exactly **7 flashcards** covering key concepts.
+        3. **Flow:** ensure the sections transition logically.
+        4. **Tone:** Academic, patient, and authoritative.
+        5. **Quantity:** Generate exactly **7 flashcards** covering key concepts.
 
         RETURN JSON ONLY.
     `
@@ -640,7 +638,7 @@ export async function simplifyContent(text: string) {
     if (!apiKey) throw new Error("Gemini API key not configured")
 
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
 
     const prompt = `
         You are an expert teacher helping a student.
@@ -656,9 +654,9 @@ export async function simplifyContent(text: string) {
         const result = await model.generateContent(prompt)
         const response = await result.response
         return response.text()
-    } catch (error) {
-        console.error("ELI5 Generation Error:", error)
-        throw new Error("Failed to simplify content.")
+    } catch (e) {
+        console.error("Simplify Error:", e)
+        return text // Fallback to original text
     }
 }
 
