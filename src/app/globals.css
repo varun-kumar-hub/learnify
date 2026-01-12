@@ -18,8 +18,8 @@
   --radius: 0.75rem;
 
   /* Advanced Dark Mode Palette */
-  --background: oklch(0.05 0.01 260);
-  /* Deep Void Blue */
+  --background: oklch(0.02 0.01 260);
+  /* Deep Void Blue (Darker) */
   --foreground: oklch(0.98 0 0);
   /* Pure White */
 
@@ -68,10 +68,12 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    /* Deep space gradient background */
+    /* Rich Gradient Background */
     background-image:
-      radial-gradient(circle at 50% 0%, oklch(0.25 0.1 260 / 0.4), transparent 50%),
-      radial-gradient(circle at 100% 0%, oklch(0.3 0.15 300 / 0.2), transparent 40%);
+      radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(236, 72, 153, 0.1) 0px, transparent 50%);
     background-attachment: fixed;
   }
 }

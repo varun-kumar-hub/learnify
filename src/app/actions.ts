@@ -360,7 +360,7 @@ export async function generateContent(topicId: string) {
         Context: "${topic.subjects.description}".
         Level: "${topic.level}".
 
-        **Goal:** Create a deep, rigorous, and visually supported learning resource. It should read like a guided chapter from a high-quality textbook, not a summary.
+        **Goal:** Create a high-quality, concise learning resource. It should be punchy and directed, avoiding fluff.
 
         **Structure Requirements (JSON):**
         Return a JSON object with this EXACT structure:
@@ -371,7 +371,7 @@ export async function generateContent(topicId: string) {
                 {
                     "type": "concept",
                     "heading": "1. [Concept Name]",
-                    "content": "Deep explanatory prose (3-4 paragraphs). Use bold for key terms. Explain the 'why' and 'how' in detail. Do not use bullet points here.",
+                    "content": "Concise, clear explanation (approx. 100-150 words). Focus on the core idea. Avoid wall of text.",
                     "analogy": "A powerful real-world analogy to build intuition.",
                     "diagram": "OPTIONAL: A valid Mermaid.js flowchart string (e.g., 'graph TD; A-->B;') representing this SPECIFIC concept. Do not include markdown blocks.",
                     "table": { "headers": ["Col 1", "Col 2"], "rows": [["Val 1", "Val 2"]] } // OPTIONAL: Only if a comparison is needed here.
@@ -394,7 +394,7 @@ export async function generateContent(topicId: string) {
         }
 
         **Constraints:**
-        1. **Depth:** Write in continuous prose. Avoid bullet points in the main content.
+        1. **Conciseness:** Keep each section tight (around 6-7 lines). Get straight to the point.
         2. **Visuals:** You MUST include at least **2 diagrams** (Mermaid) and **1 table** across the sections.
         3. **Flow:** ensure the sections transition logically.
         4. **Tone:** Academic, patient, and authoritative.
@@ -795,4 +795,28 @@ export async function linkTopics(parentTopicId: string, childTopicId: string) {
     if (topic) {
         revalidatePath(`/subject/${topic.subject_id}`)
     }
+}
+
+export async function getResumeTopic() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return null
+
+    // Find the most recently updated topic 
+    const { data, error } = await supabase
+        .from('topics')
+        .select(`
+            *,
+            subjects (
+                title
+            )
+        `)
+        .eq('user_id', user.id)
+        .in('status', ['IN_PROGRESS', 'GENERATED', 'COMPLETED'])
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single()
+
+    if (error || !data) return null
+    return data
 }

@@ -2,12 +2,13 @@ import { Brain } from 'lucide-react'
 import { createClient } from "@/utils/supabase/server";
 import { GeminiKeyModal } from "@/components/gemini-key-modal";
 import { redirect } from "next/navigation";
-import { getSubjects, getProfile } from "./actions";
+import { getSubjects, getProfile, getResumeTopic } from "./actions";
 import { SubjectCard } from "@/components/subject-card";
 import { CreateSubjectModal } from "@/components/create-subject-modal";
 import { HeaderActions } from "@/components/header-actions";
 import { SettingsDialog } from "@/components/settings-dialog";
 import { Button } from "@/components/ui/button";
+import Link from 'next/link'
 
 export default async function Dashboard() {
   const supabase = await createClient();
@@ -19,6 +20,7 @@ export default async function Dashboard() {
 
   const subjects = await getSubjects();
   const profile = await getProfile();
+  const resumeTopic = await getResumeTopic();
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-blue-500/30 pb-20">
@@ -46,6 +48,25 @@ export default async function Dashboard() {
           </div>
           <CreateSubjectModal />
         </div>
+
+        {/* Continue Learning Section */}
+        {resumeTopic && (
+          <div className="bg-gradient-to-r from-blue-900/40 to-indigo-900/40 border border-blue-500/20 rounded-2xl p-6 flex items-center justify-between mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-blue-400 text-sm font-medium uppercase tracking-wider">
+                <Brain className="w-4 h-4" />
+                <span>Continue where you left off</span>
+              </div>
+              <h2 className="text-2xl font-bold text-white">{resumeTopic.title}</h2>
+              <p className="text-zinc-400">In {resumeTopic.subjects.title}</p>
+            </div>
+            <Link href={`/learn/${resumeTopic.id}`}>
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-500 text-white rounded-full px-8 shadow-lg shadow-blue-900/20">
+                Resume Lesson
+              </Button>
+            </Link>
+          </div>
+        )}
 
         {/* Key Modal handled by Settings now, but if we want to force prompt if missing, we could reuse it or rely on empty state/error handling. Steps did not require force prompt. */}
 

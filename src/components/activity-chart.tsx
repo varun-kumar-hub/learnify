@@ -6,7 +6,7 @@ import { useEffect, useState } from "react"
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts"
 
 export function ActivityChart() {
-    const [data, setData] = useState<{ activity_date: string, minutes_active: number }[]>([])
+    const [data, setData] = useState<{ name: string, minutes: number }[]>([])
     const [totalMinutes, setTotalMinutes] = useState(0)
 
     useEffect(() => {
@@ -24,7 +24,7 @@ export function ActivityChart() {
                 })
             }
             setData(filledData)
-            setTotalMinutes(logs.reduce((acc: number, curr: any) => acc + curr.minutes_active, 0))
+            setTotalMinutes(logs.reduce((acc: number, curr: { minutes_active: number }) => acc + curr.minutes_active, 0))
         })
     }, [])
 

@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { BookOpen, CheckCircle, ArrowRight, Loader2, Brain, CheckCircle2, Sparkles } from 'lucide-react'
+import { BookOpen, CheckCircle, ArrowRight, Loader2, Brain, CheckCircle2, Sparkles, FileText, Printer, Flame, Wand2 } from 'lucide-react'
 import { generateContent, completeTopic, incrementActivity } from '@/app/actions'
 import { FlashcardCarousel } from '@/components/flashcard-carousel'
 import { ChatInterface } from '@/components/chat-interface'
@@ -13,11 +13,12 @@ import Link from 'next/link'
 import { QuizModal } from '@/components/quiz-modal'
 import { CodePlayground } from '@/components/code-playground'
 import { CodeBlock } from '@/components/code-block'
-import { simplifyContent } from '@/app/actions'
 import { cn } from '@/lib/utils'
-import { Wand2, FileText, Printer, Flame } from 'lucide-react'
+
 import { MermaidDiagram } from '@/components/mermaid-diagram'
 import { useEffect } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface TopicViewerProps {
     topic: any
@@ -120,38 +121,28 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
 
             {/* Overview */}
             <section className="space-y-4 text-center relative">
-                {/* ELI5 Toggle - Moved to Top Right */}
-                <div className="absolute top-0 right-0 hidden md:block">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleSimplify}
-                        className="text-zinc-500 hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
-                        disabled={isSimplifying}
-                    >
-                        {isSimplifying ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Wand2 className="w-4 h-4 mr-2" />}
-                        {showSimplified ? "Show Original" : "Explain Like I'm 5"}
-                    </Button>
-                </div>
+
 
                 <span className="inline-block px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-sm font-medium border border-blue-500/20">
                     {topic.level}
                 </span>
                 <h1 className="text-4xl md:text-5xl font-black tracking-tight">{topic.title}</h1>
 
-                <div className="relative max-w-2xl mx-auto group space-y-4">
-                    <p className={cn(
-                        "text-xl leading-relaxed transition-all duration-500",
+                <div className="relative max-w-4xl mx-auto group space-y-6">
+                    <div className={cn(
+                        "text-xl leading-relaxed transition-all duration-500 prose prose-invert prose-lg max-w-none",
                         showSimplified ? "text-blue-200 font-medium" : "text-zinc-300"
                     )}>
-                        {showSimplified ? simplifiedOverview : content.overview}
-                    </p>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {showSimplified ? (simplifiedOverview || "") : content.overview}
+                        </ReactMarkdown>
+                    </div>
                 </div>
             </section>
 
             {/* Code Playground (Visible only if practice code exists) */}
             {content.practice_code && (
-                <section className="space-y-4 print:hidden">
+                <section className="space-y-4 print:hidden max-w-4xl mx-auto">
                     <div className="flex items-center gap-2 mb-4">
                         <h2 className="text-2xl font-bold">Interactive Playground</h2>
                         <span className="text-xs bg-zinc-800 px-2 py-1 rounded text-zinc-400">Beta</span>
@@ -182,7 +173,9 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
 
                         {/* Content Prose */}
                         <div className="prose prose-invert prose-lg max-w-none text-zinc-300 leading-relaxed pl-4 md:pl-14 border-l-2 border-zinc-800">
-                            <p className="whitespace-pre-wrap">{section.content}</p>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {section.content}
+                            </ReactMarkdown>
                         </div>
 
                         {/* Analogy Block */}
@@ -238,9 +231,11 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
                 <section className="mt-16 bg-gradient-to-br from-emerald-900/20 to-teal-900/10 border border-emerald-500/20 rounded-2xl p-8 md:p-12">
                     <span className="text-emerald-400 font-bold tracking-widest uppercase text-sm mb-4 block">Applied Science</span>
                     <h3 className="text-3xl font-bold text-white mb-6">{content.real_world_application.title}</h3>
-                    <p className="text-lg text-emerald-100/70 leading-relaxed">
-                        {content.real_world_application.description}
-                    </p>
+                    <div className="text-lg text-emerald-100/70 leading-relaxed prose prose-invert max-w-none">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {content.real_world_application.description}
+                        </ReactMarkdown>
+                    </div>
                 </section>
             )}
 
@@ -291,17 +286,19 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
             }
 
             {/* Mistakes */}
-            <section className="bg-red-950/10 border border-red-900/20 rounded-2xl p-8">
-                <h3 className="text-xl font-bold text-red-400 mb-6">Common Mistakes to Avoid</h3>
-                <ul className="space-y-3">
-                    {content.common_mistakes.map((mistake: string, idx: number) => (
-                        <li key={idx} className="flex items-start gap-3 text-zinc-300">
-                            <span className="text-red-500 font-bold">•</span>
-                            {mistake}
-                        </li>
-                    ))}
-                </ul>
-            </section>
+            {content.common_mistakes && (
+                <section className="bg-red-950/10 border border-red-900/20 rounded-2xl p-8">
+                    <h3 className="text-xl font-bold text-red-400 mb-6">Common Mistakes to Avoid</h3>
+                    <ul className="space-y-3">
+                        {content.common_mistakes.map((mistake: string, idx: number) => (
+                            <li key={idx} className="flex items-start gap-3 text-zinc-300">
+                                <span className="text-red-500 font-bold">•</span>
+                                {mistake}
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            )}
 
             {/* Flashcards */}
             {
