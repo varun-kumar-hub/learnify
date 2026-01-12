@@ -76,7 +76,7 @@ export function SettingsDialog({ initialName = "", hasKey = false }: SettingsDia
                     <Settings className="h-5 w-5" />
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="absolute top-16 right-6 w-[400px] bg-zinc-950 border-zinc-800 text-white shadow-2xl p-0 overflow-hidden sm:rounded-xl data-[state=open]:slide-in-from-top-2 data-[state=open]:fade-in-0 sm:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=closed]:fade-out-0">
                 <DialogHeader>
                     <DialogTitle>Settings</DialogTitle>
                     <DialogDescription>

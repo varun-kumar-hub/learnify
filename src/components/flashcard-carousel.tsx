@@ -49,10 +49,13 @@ export function FlashcardCarousel({ flashcards }: { flashcards: Flashcard[] }) {
                 >
                     {/* Front */}
                     <div className="absolute inset-0 backface-hidden">
-                        <Card className="w-full h-full bg-zinc-900/50 border-blue-500/20 flex items-center justify-center p-8 text-center hover:border-blue-500/50 transition-colors">
-                            <CardContent className="p-0">
-                                <h3 className="text-2xl font-bold text-white mb-4">Question</h3>
-                                <p className="text-xl text-zinc-300">{currentCard.front}</p>
+                        <Card className="w-full h-full bg-gradient-to-br from-zinc-900 to-zinc-950 border-white/10 flex flex-col items-center justify-center p-8 text-center shadow-2xl relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50" />
+                            <CardContent className="p-0 z-10">
+                                <span className="text-xs font-bold text-blue-500 uppercase tracking-widest mb-4 block">Question</span>
+                                <h3 className="text-xl md:text-2xl font-medium text-white leading-relaxed">
+                                    {currentCard.front}
+                                </h3>
                             </CardContent>
                         </Card>
                     </div>
@@ -62,10 +65,15 @@ export function FlashcardCarousel({ flashcards }: { flashcards: Flashcard[] }) {
                         className="absolute inset-0 backface-hidden"
                         style={{ transform: 'rotateY(180deg)' }}
                     >
-                        <Card className="w-full h-full bg-blue-950/20 border-blue-500/50 flex items-center justify-center p-8 text-center">
-                            <CardContent className="p-0">
-                                <h3 className="text-2xl font-bold text-blue-400 mb-4">Answer</h3>
-                                <p className="text-xl text-white">{currentCard.back}</p>
+                        <Card className="w-full h-full bg-gradient-to-br from-blue-950/30 to-purple-950/30 border-blue-500/20 flex flex-col items-center justify-center p-8 text-center shadow-xl backdrop-blur-sm">
+                            <div className="absolute top-0 right-0 p-4 opacity-20">
+                                <Check className="w-24 h-24 text-blue-500" />
+                            </div>
+                            <CardContent className="p-0 z-10">
+                                <span className="text-xs font-bold text-green-400 uppercase tracking-widest mb-4 block">Answer</span>
+                                <p className="text-lg text-zinc-200 leading-relaxed font-light">
+                                    {currentCard.back}
+                                </p>
                             </CardContent>
                         </Card>
                     </div>

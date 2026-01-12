@@ -361,35 +361,45 @@ export async function generateContent(topicId: string) {
         Level: "${topic.level}".
 
         Return a JSON object with the following structure:
-        {
-            "overview": "Comprehensive academic introduction (3-5 sentences)",
+    {
+        "overview": "Comprehensive academic introduction (3-5 sentences), explaining the 'Why' and 'How'.",
             "real_world_applications": [
-                { "title": "Application Area", "description": "How this concept applies to real-world engineering, business, or science." }
+                { "title": "Application Area", "description": "Detailed explanation of how this concept applies to real-world engineering, business, or science." }
             ],
-            "core_concepts": [
-                { "title": "Concept Name", "explanation": "In-depth technical explanation", "example": "Complex example or case study" }
-            ],
-            "flowchart": {
-                "nodes": [ { "id": "1", "label": "Start" } ],
-                "edges": [ { "from": "1", "to": "2", "label": "next" } ]
-            },
-            "technical_deep_dive": {
-                 "title": "Advanced Insight",
-                 "content": "A paragraph explaining a nuance, edge case, or internal mechanism."
-            },
-            "common_mistakes": [ "Mistake 1", "Mistake 2" ],
-            "practice_code": {
-                "language": "python",
-                "snippet": "def example():\n    return 'Hello'",
+                "core_concepts": [
+                    {
+                        "title": "Concept Name",
+                        "explanation": "In-depth technical explanation (2-3 paragraphs). Use bold text for key terms.",
+                        "example": "Complex example or case study code/math."
+                    }
+                ],
+                    "mermaid_chart": "A valid Mermaid.js flowchart string (e.g., 'graph TD; A-->B;'). Do not include markdown code block syntax (triple backticks mermaid). Just the string.",
+    "comparison_table": {
+        "headers": ["Criteria", "Option A", "Option B"],
+            "rows": [["Speed", "Fast", "Slow"], ["Cost", "High", "Low"]]
+    },
+    "technical_deep_dive": {
+        "title": "Advanced Insight",
+            "content": "A detailed paragraph explaining a nuance, edge case, or internal mechanism."
+    },
+    "common_mistakes": ["Mistake 1 - Explanation", "Mistake 2 - Explanation"],
+        "practice_code": {
+        "language": "python",
+            "snippet": "def example():\n    return 'Hello'",
                 "description": "Brief description of what this code does."
-            },
-            "summary": "Executive summary of key takeaways",
-            "flashcards": [
-                { "front": "Advanced Question?", "back": "Detailed Answer" }
-            ]
-        }
+    },
+    "summary": "Executive summary of key takeaways",
+        "flashcards": [
+            { "front": "Complex Question demanding critical thinking?", "back": "Detailed, multi-part answer." }
+        ]
+}
+
+Requirements:
+1. ** Depth:** Explanations must be rigorous and detailed.Avoid high - level fluff.
+        2. ** Visuals:** The Mermaid chart should represent a process flow or decision tree relevant to the topic.
+        3. ** Tables:** The comparison table should compare concepts(e.g., Pros / Cons, Method A vs Method B).
+        4. ** Flashcards:** Make questions challenging, testing understanding rather than recall.
         
-        Keep the tone professional, academic, and rigorous.
         RETURN JSON ONLY.
     `
 

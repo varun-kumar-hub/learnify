@@ -16,6 +16,7 @@ import { CodeBlock } from '@/components/code-block'
 import { simplifyContent } from '@/app/actions'
 import { cn } from '@/lib/utils'
 import { Wand2, FileText, Printer, Flame } from 'lucide-react'
+import { MermaidDiagram } from '@/components/mermaid-diagram'
 import { useEffect } from 'react'
 
 interface TopicViewerProps {
@@ -28,6 +29,21 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
     const [isGenerating, startGeneration] = useTransition()
     const [isCompleting, startCompletion] = useTransition()
     const [isQuizOpen, setIsQuizOpen] = useState(false)
+
+    // ELI5 State
+    const [isSimplifying, startSimplifying] = useTransition()
+    const [simplifiedOverview, setSimplifiedOverview] = useState<string | null>(null)
+    const [showSimplified, setShowSimplified] = useState(false)
+
+    // Check if topic is completed based on status
+    const isCompleted = topic.status === 'COMPLETED'
+
+    const handleComplete = () => {
+        startCompletion(async () => {
+            await completeTopic(topic.id)
+            router.push(`/subject/${topic.subject_id}`)
+        })
+    }
 
     // Activity Logging
     useEffect(() => {
@@ -45,59 +61,6 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
             router.refresh()
         })
     }
-
-    if (!content) {
-        return (
-            <div className="max-w-3xl mx-auto py-20 text-center space-y-8">
-                <div className="space-y-4">
-                    <div className="w-20 h-20 bg-zinc-900 rounded-full mx-auto flex items-center justify-center border border-zinc-800">
-                        <Wand2 className="w-10 h-10 text-purple-500" />
-                    </div>
-                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-zinc-500">
-                        {topic.title}
-                    </h1>
-                    <p className="text-zinc-400 max-w-lg mx-auto">
-                        This topic is waiting to be explored. Generate the learning material to get started.
-                    </p>
-                </div>
-
-                <Button
-                    size="lg"
-                    onClick={handleGenerate}
-                    disabled={isGenerating}
-                    className="bg-purple-600 hover:bg-purple-700 text-lg px-8 py-6 h-auto shadow-lg shadow-purple-900/20"
-                >
-                    {isGenerating ? (
-                        <>
-                            <Loader2 className="w-5 h-5 mr-3 animate-spin" />
-                            Generating Lesson...
-                        </>
-                    ) : (
-                        <>
-                            <Sparkles className="w-5 h-5 mr-3" />
-                            Generate Lesson
-                        </>
-                    )}
-                </Button>
-            </div>
-        )
-    }
-
-    // ELI5 State
-    const [isSimplifying, startSimplifying] = useTransition()
-    const [simplifiedOverview, setSimplifiedOverview] = useState<string | null>(null)
-    const [showSimplified, setShowSimplified] = useState(false)
-
-    // Check if topic is completed based on status
-    const isCompleted = topic.status === 'COMPLETED'
-
-    const handleComplete = () => {
-        startCompletion(async () => {
-            await completeTopic(topic.id)
-            router.push(`/subject/${topic.subject_id}`)
-        })
-    }
-
     const handleSimplify = () => {
         if (simplifiedOverview) {
             setShowSimplified(!showSimplified)
@@ -109,35 +72,6 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
             setSimplifiedOverview(simplified)
             setShowSimplified(true)
         })
-    }
-
-
-
-
-    // If no content but status is AVAILABLE, show Generate Button
-    if (!content && topic.status === 'AVAILABLE') {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-6 text-center">
-                <div className="p-6 rounded-full bg-blue-500/10">
-                    <BookOpen className="h-12 w-12 text-blue-500" />
-                </div>
-                <div>
-                    <h2 className="text-3xl font-bold">{topic.title}</h2>
-                    <p className="text-muted-foreground mt-2 max-w-md mx-auto">
-                        Ready to learn? Generate the interactive lesson for this topic.
-                    </p>
-                </div>
-                <Button
-                    size="lg"
-                    onClick={() => startGeneration(() => generateContent(topic.id))}
-                    disabled={isGenerating}
-                    className="gap-2 shadow-lg shadow-blue-500/20"
-                >
-                    {isGenerating ? <Loader2 className="animate-spin" /> : <BookOpen className="h-4 w-4" />}
-                    Generate Lesson
-                </Button>
-            </div>
-        )
     }
 
     // If still no content (and not available), showing Locked or Error
@@ -236,6 +170,94 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
                 ))}
             </section>
 
+            {/* Mermaid Chart */}
+            {content.mermaid_chart && (
+                <section className="space-y-6">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+                            <Flame className="w-6 h-6" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-white">Process Flow</h2>
+                    </div>
+                    <MermaidDiagram chart={content.mermaid_chart} />
+                </section>
+            )}
+
+            {/* Comparison Table */}
+            {content.comparison_table && (
+                <section className="space-y-6">
+                    <h2 className="text-2xl font-bold text-white">Feature Comparison</h2>
+                    <div className="overflow-hidden rounded-xl border border-white/10">
+                        <table className="w-full text-left text-sm">
+                            <thead className="bg-zinc-900 text-zinc-400">
+                                <tr>
+                                    {content.comparison_table.headers.map((h: string, i: number) => (
+                                        <th key={i} className="px-6 py-4 font-medium uppercase tracking-wider">{h}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5 bg-zinc-950/50">
+                                {content.comparison_table.rows.map((row: string[], i: number) => (
+                                    <tr key={i} className="hover:bg-white/5 transition-colors">
+                                        {row.map((cell: string, j: number) => (
+                                            <td key={j} className="px-6 py-4 text-zinc-300 font-mono">
+                                                {cell}
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            )}
+
+            {/* Mermaid Chart */}
+            {
+                content.mermaid_chart && (
+                    <section className="space-y-6">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+                                <Flame className="w-6 h-6" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-white">Process Flow</h2>
+                        </div>
+                        <MermaidDiagram chart={content.mermaid_chart} />
+                    </section>
+                )
+            }
+
+            {/* Comparison Table */}
+            {
+                content.comparison_table && (
+                    <section className="space-y-6">
+                        <h2 className="text-2xl font-bold text-white">Feature Comparison</h2>
+                        <div className="overflow-hidden rounded-xl border border-white/10">
+                            <table className="w-full text-left text-sm">
+                                <thead className="bg-zinc-900 text-zinc-400">
+                                    <tr>
+                                        {content.comparison_table.headers.map((h: string, i: number) => (
+                                            <th key={i} className="px-6 py-4 font-medium uppercase tracking-wider">{h}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/5 bg-zinc-950/50">
+                                    {content.comparison_table.rows.map((row: string[], i: number) => (
+                                        <tr key={i} className="hover:bg-white/5 transition-colors">
+                                            {row.map((cell: string, j: number) => (
+                                                <td key={j} className="px-6 py-4 text-zinc-300 font-mono">
+                                                    {cell}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                )
+            }
+
             {/* Mistakes */}
             <section className="bg-red-950/10 border border-red-900/20 rounded-2xl p-8">
                 <h3 className="text-xl font-bold text-red-400 mb-6">Common Mistakes to Avoid</h3>
@@ -250,15 +272,17 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
             </section>
 
             {/* Flashcards */}
-            {content.flashcards && content.flashcards.length > 0 && (
-                <section className="space-y-6">
-                    <div className="text-center">
-                        <h2 className="text-2xl font-bold text-white">Interactive Flashcards</h2>
-                        <p className="text-zinc-500">Test your knowledge before completing the topic.</p>
-                    </div>
-                    <FlashcardCarousel flashcards={content.flashcards} />
-                </section>
-            )}
+            {
+                content.flashcards && content.flashcards.length > 0 && (
+                    <section className="space-y-6">
+                        <div className="text-center">
+                            <h2 className="text-2xl font-bold text-white">Interactive Flashcards</h2>
+                            <p className="text-zinc-500">Test your knowledge before completing the topic.</p>
+                        </div>
+                        <FlashcardCarousel flashcards={content.flashcards} />
+                    </section>
+                )
+            }
 
             {/* Complete Action */}
             <div className="max-w-3xl mx-auto mt-12 mb-20 flex items-center justify-between gap-4">
@@ -309,6 +333,6 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
             {/* AI Tutor Chat */}
             <ChatInterface topicId={topic.id} title={topic.title} />
 
-        </div>
+        </div >
     )
 }
