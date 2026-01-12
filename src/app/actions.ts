@@ -354,52 +354,51 @@ export async function generateContent(topicId: string) {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
 
     const prompt = `
-        Act as a **Senior Subject Matter Expert**.
-        Generate a **detailed, advanced-level lesson** for the topic: "${topic.title}".
+        Act as a **Senior Subject Matter Expert** and **Pedagogue**.
+        Generate a **Comprehensive Textbook Chapter** for the topic: "${topic.title}".
         Subject: "${topic.subjects.title}".
         Context: "${topic.subjects.description}".
         Level: "${topic.level}".
 
-        Return a JSON object with the following structure:
-    {
-        "overview": "Comprehensive academic introduction (3-5 sentences), explaining the 'Why' and 'How'.",
-            "real_world_applications": [
-                { "title": "Application Area", "description": "Detailed explanation of how this concept applies to real-world engineering, business, or science." }
-            ],
-                "core_concepts": [
-                    {
-                        "title": "Concept Name",
-                        "explanation": "In-depth technical explanation (2-3 paragraphs). Use bold text for key terms.",
-                        "example": "Complex example or case study code/math."
-                    }
-                ],
-                    "mermaid_chart": "A valid Mermaid.js flowchart string (e.g., 'graph TD; A-->B;'). Do not include markdown code block syntax (triple backticks mermaid). Just the string.",
-    "comparison_table": {
-        "headers": ["Criteria", "Option A", "Option B"],
-            "rows": [["Speed", "Fast", "Slow"], ["Cost", "High", "Low"]]
-    },
-    "technical_deep_dive": {
-        "title": "Advanced Insight",
-            "content": "A detailed paragraph explaining a nuance, edge case, or internal mechanism."
-    },
-    "common_mistakes": ["Mistake 1 - Explanation", "Mistake 2 - Explanation"],
-        "practice_code": {
-        "language": "python",
-            "snippet": "def example():\n    return 'Hello'",
-                "description": "Brief description of what this code does."
-    },
-    "summary": "Executive summary of key takeaways",
-        "flashcards": [
-            { "front": "Complex Question demanding critical thinking?", "back": "Detailed, multi-part answer." }
-        ]
-}
+        **Goal:** Create a deep, rigorous, and visually supported learning resource. It should read like a guided chapter from a high-quality textbook, not a summary.
 
-Requirements:
-1. ** Depth:** Explanations must be rigorous and detailed.Avoid high - level fluff.
-        2. ** Visuals:** The Mermaid chart should represent a process flow or decision tree relevant to the topic.
-        3. ** Tables:** The comparison table should compare concepts(e.g., Pros / Cons, Method A vs Method B).
-        4. ** Flashcards:** Make questions challenging, testing understanding rather than recall.
-        
+        **Structure Requirements (JSON):**
+        Return a JSON object with this EXACT structure:
+        {
+            "overview": "A calm, 2 paragraph introduction setting the context. Why does this matter? What will we learn?",
+            "learning_outcomes": ["Outcome 1", "Outcome 2"],
+            "sections": [
+                {
+                    "type": "concept",
+                    "heading": "1. [Concept Name]",
+                    "content": "Deep explanatory prose (3-4 paragraphs). Use bold for key terms. Explain the 'why' and 'how' in detail. Do not use bullet points here.",
+                    "analogy": "A powerful real-world analogy to build intuition.",
+                    "diagram": "OPTIONAL: A valid Mermaid.js flowchart string (e.g., 'graph TD; A-->B;') representing this SPECIFIC concept. Do not include markdown blocks.",
+                    "table": { "headers": ["Col 1", "Col 2"], "rows": [["Val 1", "Val 2"]] } // OPTIONAL: Only if a comparison is needed here.
+                },
+                {
+                    "type": "concept",
+                    "heading": "2. [Next Concept]",
+                    "content": "Continue the narrative...",
+                    "diagram": "..." 
+                }
+            ],
+            "real_world_application": {
+                "title": "Applied Engineering/Business Scenario",
+                "description": "A detailed case study or application of the concepts."
+            },
+            "summary_bullets": ["Key Takeaway 1", "Key Takeaway 2"],
+            "flashcards": [
+                { "front": "Deep, critical thinking question?", "back": "Comprehensive answer." }
+            ]
+        }
+
+        **Constraints:**
+        1. **Depth:** Write in continuous prose. Avoid bullet points in the main content.
+        2. **Visuals:** You MUST include at least **2 diagrams** (Mermaid) and **1 table** across the sections.
+        3. **Flow:** ensure the sections transition logically.
+        4. **Tone:** Academic, patient, and authoritative.
+
         RETURN JSON ONLY.
     `
 

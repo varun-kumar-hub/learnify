@@ -74,14 +74,42 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
         })
     }
 
-    // If still no content (and not available), showing Locked or Error
+    // If content is missing, show generation prompt
     if (!content) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[50vh] text-zinc-500">
-                <p>This topic is currently locked or unavailable.</p>
-                <Link href={`/subject/${topic.subject_id}`} className="mt-4 underline">
-                    Return to Graph
-                </Link>
+            <div className="flex flex-col items-center justify-center min-h-[50vh] text-center space-y-6 animate-in fade-in zoom-in duration-500">
+                <div className="p-6 rounded-full bg-zinc-900 border border-zinc-800 shadow-2xl relative group">
+                    <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full group-hover:bg-blue-500/30 transition-all opacity-0 group-hover:opacity-100" />
+                    <Sparkles className="w-12 h-12 text-blue-400 relative z-10" />
+                </div>
+
+                <div className="max-w-md space-y-2">
+                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-white to-zinc-500">
+                        {topic.title}
+                    </h1>
+                    <p className="text-zinc-400">
+                        This topic is ready to be explored. Generate the interactive lesson to begin your journey.
+                    </p>
+                </div>
+
+                <Button
+                    size="lg"
+                    onClick={handleGenerate}
+                    disabled={isGenerating}
+                    className="relative overflow-hidden bg-white text-black hover:bg-blue-50 transition-all px-8 py-6 rounded-full text-lg font-medium shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] hover:shadow-[0_0_60px_-15px_rgba(59,130,246,0.6)]"
+                >
+                    {isGenerating ? (
+                        <>
+                            <Loader2 className="w-5 h-5 animate-spin mr-3" />
+                            Crafting Lesson...
+                        </>
+                    ) : (
+                        <>
+                            <Wand2 className="w-5 h-5 mr-3" />
+                            Generate Lesson
+                        </>
+                    )}
+                </Button>
             </div>
         )
     }
@@ -140,75 +168,79 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
                 </section>
             )}
 
-            {/* Core Concepts */}
-            {/* Core Concepts - Straight Path Layout */}
-            <section className="relative space-y-12 before:absolute before:left-4 md:before:left-8 before:top-4 before:bottom-4 before:w-0.5 before:bg-gradient-to-b before:from-blue-500 before:to-purple-500 before:opacity-20">
-                {content.core_concepts && Array.isArray(content.core_concepts) && content.core_concepts.map((concept: any, idx: number) => (
-                    <div key={idx} className="relative pl-12 md:pl-20">
-                        {/* Timeline Node */}
-                        <div className="absolute left-0 md:left-4 top-0 w-8 h-8 rounded-full bg-zinc-950 border border-blue-500/50 flex items-center justify-center z-10">
-                            <span className="text-xs font-mono text-blue-400">{idx + 1}</span>
+            {/* Dynamic Sections rendering */}
+            <section className="space-y-16">
+                {content.sections && content.sections.map((section: any, idx: number) => (
+                    <div key={idx} className="relative space-y-8">
+                        {/* Section Marker */}
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 font-bold shrink-0">
+                                {idx + 1}
+                            </div>
+                            <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">{section.heading.replace(/^\d+\.\s*/, '')}</h2>
                         </div>
 
-                        <div className="space-y-4">
-                            <h3 className="text-2xl font-bold text-white mb-2">{concept.title}</h3>
-                            <p className="text-lg text-zinc-400 leading-relaxed max-w-3xl">
-                                {concept.explanation}
-                            </p>
+                        {/* Content Prose */}
+                        <div className="prose prose-invert prose-lg max-w-none text-zinc-300 leading-relaxed pl-4 md:pl-14 border-l-2 border-zinc-800">
+                            <p className="whitespace-pre-wrap">{section.content}</p>
+                        </div>
 
-                            {concept.example && (
-                                <div className="mt-4">
-                                    <span className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2 block ml-1">Example & Application</span>
-                                    <CodeBlock
-                                        code={concept.example}
-                                        language="Example"
-                                    />
+                        {/* Analogy Block */}
+                        {section.analogy && (
+                            <div className="ml-4 md:ml-14 bg-amber-500/5 border-l-4 border-amber-500/50 p-6 rounded-r-lg my-6">
+                                <h4 className="text-amber-400 font-bold uppercase text-xs tracking-wider mb-2">Analogy & Intuition</h4>
+                                <p className="text-amber-100/80 italic text-lg">{section.analogy}</p>
+                            </div>
+                        )}
+
+                        {/* Chart (if present in this section) */}
+                        {section.diagram && (
+                            <div className="ml-4 md:ml-14 my-8">
+                                <div className="flex items-center gap-2 mb-4 text-indigo-400">
+                                    <Flame className="w-5 h-5" />
+                                    <span className="text-sm font-bold uppercase tracking-wider">Visual Model</span>
                                 </div>
-                            )}
-                        </div>
+                                <MermaidDiagram chart={section.diagram} />
+                            </div>
+                        )}
+
+                        {/* Table (if present in this section) */}
+                        {section.table && (
+                            <div className="ml-4 md:ml-14 my-8 overflow-hidden rounded-xl border border-white/10">
+                                <table className="w-full text-left text-sm">
+                                    <thead className="bg-zinc-900 text-zinc-400">
+                                        <tr>
+                                            {section.table.headers.map((h: string, i: number) => (
+                                                <th key={i} className="px-6 py-4 font-medium uppercase tracking-wider">{h}</th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-white/5 bg-zinc-950/50">
+                                        {section.table.rows.map((row: string[], i: number) => (
+                                            <tr key={i} className="hover:bg-white/5 transition-colors">
+                                                {row.map((cell: string, j: number) => (
+                                                    <td key={j} className="px-6 py-4 text-zinc-300 font-mono">
+                                                        {cell}
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
                     </div>
                 ))}
             </section>
 
-            {/* Mermaid Chart */}
-            {content.mermaid_chart && (
-                <section className="space-y-6">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
-                            <Flame className="w-6 h-6" />
-                        </div>
-                        <h2 className="text-2xl font-bold text-white">Process Flow</h2>
-                    </div>
-                    <MermaidDiagram chart={content.mermaid_chart} />
-                </section>
-            )}
-
-            {/* Comparison Table */}
-            {content.comparison_table && (
-                <section className="space-y-6">
-                    <h2 className="text-2xl font-bold text-white">Feature Comparison</h2>
-                    <div className="overflow-hidden rounded-xl border border-white/10">
-                        <table className="w-full text-left text-sm">
-                            <thead className="bg-zinc-900 text-zinc-400">
-                                <tr>
-                                    {content.comparison_table.headers.map((h: string, i: number) => (
-                                        <th key={i} className="px-6 py-4 font-medium uppercase tracking-wider">{h}</th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5 bg-zinc-950/50">
-                                {content.comparison_table.rows.map((row: string[], i: number) => (
-                                    <tr key={i} className="hover:bg-white/5 transition-colors">
-                                        {row.map((cell: string, j: number) => (
-                                            <td key={j} className="px-6 py-4 text-zinc-300 font-mono">
-                                                {cell}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+            {/* Real World Application */}
+            {content.real_world_application && (
+                <section className="mt-16 bg-gradient-to-br from-emerald-900/20 to-teal-900/10 border border-emerald-500/20 rounded-2xl p-8 md:p-12">
+                    <span className="text-emerald-400 font-bold tracking-widest uppercase text-sm mb-4 block">Applied Science</span>
+                    <h3 className="text-3xl font-bold text-white mb-6">{content.real_world_application.title}</h3>
+                    <p className="text-lg text-emerald-100/70 leading-relaxed">
+                        {content.real_world_application.description}
+                    </p>
                 </section>
             )}
 
