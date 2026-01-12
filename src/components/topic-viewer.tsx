@@ -30,11 +30,7 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
     const [isGenerating, startGeneration] = useTransition()
     const [isCompleting, startCompletion] = useTransition()
     const [isQuizOpen, setIsQuizOpen] = useState(false)
-
-    // ELI5 State
-    const [isSimplifying, startSimplifying] = useTransition()
-    const [simplifiedOverview, setSimplifiedOverview] = useState<string | null>(null)
-    const [showSimplified, setShowSimplified] = useState(false)
+    const [showFlashcards, setShowFlashcards] = useState(false)
 
     // Check if topic is completed based on status
     const isCompleted = topic.status === 'COMPLETED'
@@ -62,18 +58,8 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
             router.refresh()
         })
     }
-    const handleSimplify = () => {
-        if (simplifiedOverview) {
-            setShowSimplified(!showSimplified)
-            return
-        }
 
-        startSimplifying(async () => {
-            const simplified = await simplifyContent(content.overview)
-            setSimplifiedOverview(simplified)
-            setShowSimplified(true)
-        })
-    }
+
 
     // If content is missing, show generation prompt
     if (!content) {
@@ -97,7 +83,7 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
                     size="lg"
                     onClick={handleGenerate}
                     disabled={isGenerating}
-                    className="relative overflow-hidden bg-white text-black hover:bg-blue-50 transition-all px-8 py-6 rounded-full text-lg font-medium shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] hover:shadow-[0_0_60px_-15px_rgba(59,130,246,0.6)]"
+                    className="relative overflow-hidden bg-white text-black hover:bg-blue-50 transition-all px-8 py-6 rounded-full text-lg font-medium shadow-2xl hover:shadow-blue-500/50"
                 >
                     {isGenerating ? (
                         <>
@@ -120,7 +106,7 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
         <div className="max-w-4xl mx-auto space-y-12 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
             {/* Overview */}
-            <section className="space-y-4 text-center relative">
+            <section className="space-y-4 text-left relative">
 
 
                 <span className="inline-block px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-sm font-medium border border-blue-500/20">
@@ -129,12 +115,9 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
                 <h1 className="text-4xl md:text-5xl font-black tracking-tight">{topic.title}</h1>
 
                 <div className="relative max-w-4xl mx-auto group space-y-6">
-                    <div className={cn(
-                        "text-xl leading-relaxed transition-all duration-500 prose prose-invert prose-lg max-w-none",
-                        showSimplified ? "text-blue-200 font-medium" : "text-zinc-300"
-                    )}>
+                    <div className="text-xl leading-relaxed text-zinc-300 transition-all duration-500 prose prose-invert prose-lg max-w-none">
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                            {showSimplified ? (simplifiedOverview || "") : content.overview}
+                            {content.overview}
                         </ReactMarkdown>
                     </div>
                 </div>
@@ -178,11 +161,18 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
                             </ReactMarkdown>
                         </div>
 
-                        {/* Analogy Block */}
-                        {section.analogy && (
-                            <div className="ml-4 md:ml-14 bg-amber-500/5 border-l-4 border-amber-500/50 p-6 rounded-r-lg my-6">
-                                <h4 className="text-amber-400 font-bold uppercase text-xs tracking-wider mb-2">Analogy & Intuition</h4>
-                                <p className="text-amber-100/80 italic text-lg">{section.analogy}</p>
+                        {/* Example Block */}
+                        {section.example && (
+                            <div className="ml-4 md:ml-14 bg-cyan-950/30 border-l-4 border-cyan-500/50 p-6 rounded-r-lg my-6">
+                                <h4 className="text-cyan-400 font-bold uppercase text-xs tracking-wider mb-2 flex items-center gap-2">
+                                    <FileText className="w-4 h-4" />
+                                    Concrete Example
+                                </h4>
+                                <div className="text-cyan-100/90 text-base leading-relaxed">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                        {section.example}
+                                    </ReactMarkdown>
+                                </div>
                             </div>
                         )}
 
@@ -304,11 +294,26 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
             {
                 content.flashcards && content.flashcards.length > 0 && (
                     <section className="space-y-6">
-                        <div className="text-center">
-                            <h2 className="text-2xl font-bold text-white">Interactive Flashcards</h2>
-                            <p className="text-zinc-500">Test your knowledge before completing the topic.</p>
-                        </div>
-                        <FlashcardCarousel flashcards={content.flashcards} />
+                        {!showFlashcards ? (
+                            <div className="flex justify-center">
+                                <Button
+                                    onClick={() => setShowFlashcards(true)}
+                                    size="lg"
+                                    className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-8 py-6 rounded-full text-lg shadow-lg shadow-purple-900/20 transition-all hover:scale-105"
+                                >
+                                    <Brain className="w-5 h-5 mr-2" />
+                                    Practice with Flashcards
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="text-center mb-6">
+                                    <h2 className="text-2xl font-bold text-white">Interactive Flashcards</h2>
+                                    <p className="text-zinc-500">Test your knowledge before completing the topic.</p>
+                                </div>
+                                <FlashcardCarousel flashcards={content.flashcards} />
+                            </div>
+                        )}
                     </section>
                 )
             }

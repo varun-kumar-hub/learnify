@@ -22,9 +22,18 @@ export function MermaidDiagram({ chart }: { chart: string }) {
         const renderChart = async () => {
             if (!chart) return
 
+            // Sanitize chart: fix unquoted labels with parentheses
+            // Regex finds id[Text (Content)] and ensures quotes: id["Text (Content)"]
+            const sanitizedChart = chart.replace(/\[([^"\]]*[\(\)][^"\]]*)\]/g, '["$1"]')
+
             try {
                 const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`
-                const { svg } = await mermaid.render(id, chart)
+                // Configure strictly to prevent error injection into DOM
+                mermaid.parseError = (err) => {
+                    console.error("Mermaid Parse Error:", err)
+                    setError(true)
+                }
+                const { svg } = await mermaid.render(id, sanitizedChart)
                 setSvg(svg)
                 setError(false)
             } catch (err) {

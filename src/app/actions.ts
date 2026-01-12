@@ -372,8 +372,8 @@ export async function generateContent(topicId: string) {
                     "type": "concept",
                     "heading": "1. [Concept Name]",
                     "content": "Concise, clear explanation (approx. 100-150 words). Focus on the core idea. Avoid wall of text.",
-                    "analogy": "A powerful real-world analogy to build intuition.",
-                    "diagram": "OPTIONAL: A valid Mermaid.js flowchart string (e.g., 'graph TD; A-->B;') representing this SPECIFIC concept. Do not include markdown blocks.",
+                    "example": "A concrete example (e.g., code snippet, math problem, or case study) demonstrating the concept.",
+                    "diagram": "OPTIONAL: A valid Mermaid.js flowchart string representing this SPECIFIC concept. IMPORTANT: You MUST quote all node labels if they contain spaces or special characters (e.g., 'graph TD; A[\"Main Function\"]-->B[\"Process\"];'). Do not include markdown blocks.",
                     "table": { "headers": ["Col 1", "Col 2"], "rows": [["Val 1", "Val 2"]] } // OPTIONAL: Only if a comparison is needed here.
                 },
                 {
@@ -398,6 +398,7 @@ export async function generateContent(topicId: string) {
         2. **Visuals:** You MUST include at least **2 diagrams** (Mermaid) and **1 table** across the sections.
         3. **Flow:** ensure the sections transition logically.
         4. **Tone:** Academic, patient, and authoritative.
+        5. **Quantity:** Generate exactly **7 flashcards**.
 
         RETURN JSON ONLY.
     `
@@ -604,7 +605,7 @@ export async function generateQuiz(topicId: string) {
         Subject: "${topic.subjects.title}".
         Context: "${topic.subjects.description}".
 
-        Return a JSON object with a "questions" array (3-5 questions).
+        Return a JSON object with a "questions" array (6-7 questions).
         Each question object must be:
         {
             "id": "q1",
