@@ -4,17 +4,19 @@ import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { BookOpen, CheckCircle, ArrowRight, Loader2, Brain, CheckCircle2 } from 'lucide-react'
-import { generateContent, completeTopic } from '@/app/actions'
+import { BookOpen, CheckCircle, ArrowRight, Loader2, Brain, CheckCircle2, Sparkles } from 'lucide-react'
+import { generateContent, completeTopic, incrementActivity } from '@/app/actions'
 import { FlashcardCarousel } from '@/components/flashcard-carousel'
 import { ChatInterface } from '@/components/chat-interface'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { QuizModal } from '@/components/quiz-modal'
 import { CodePlayground } from '@/components/code-playground'
+import { CodeBlock } from '@/components/code-block'
 import { simplifyContent } from '@/app/actions'
 import { cn } from '@/lib/utils'
 import { Wand2, FileText, Printer, Flame } from 'lucide-react'
+import { useEffect } from 'react'
 
 interface TopicViewerProps {
     topic: any
@@ -26,6 +28,60 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
     const [isGenerating, startGeneration] = useTransition()
     const [isCompleting, startCompletion] = useTransition()
     const [isQuizOpen, setIsQuizOpen] = useState(false)
+
+    // Activity Logging
+    useEffect(() => {
+        const interval = setInterval(() => {
+            incrementActivity(1)
+        }, 60000) // Log 1 minute every 60 seconds
+
+        return () => clearInterval(interval)
+    }, [])
+
+    // Handler for Manual Generation
+    const handleGenerate = () => {
+        startGeneration(async () => {
+            await generateContent(topic.id)
+            router.refresh()
+        })
+    }
+
+    if (!content) {
+        return (
+            <div className="max-w-3xl mx-auto py-20 text-center space-y-8">
+                <div className="space-y-4">
+                    <div className="w-20 h-20 bg-zinc-900 rounded-full mx-auto flex items-center justify-center border border-zinc-800">
+                        <Wand2 className="w-10 h-10 text-purple-500" />
+                    </div>
+                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-zinc-500">
+                        {topic.title}
+                    </h1>
+                    <p className="text-zinc-400 max-w-lg mx-auto">
+                        This topic is waiting to be explored. Generate the learning material to get started.
+                    </p>
+                </div>
+
+                <Button
+                    size="lg"
+                    onClick={handleGenerate}
+                    disabled={isGenerating}
+                    className="bg-purple-600 hover:bg-purple-700 text-lg px-8 py-6 h-auto shadow-lg shadow-purple-900/20"
+                >
+                    {isGenerating ? (
+                        <>
+                            <Loader2 className="w-5 h-5 mr-3 animate-spin" />
+                            Generating Lesson...
+                        </>
+                    ) : (
+                        <>
+                            <Sparkles className="w-5 h-5 mr-3" />
+                            Generate Lesson
+                        </>
+                    )}
+                </Button>
+            </div>
+        )
+    }
 
     // ELI5 State
     const [isSimplifying, startSimplifying] = useTransition()
@@ -55,9 +111,7 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
         })
     }
 
-    const handlePrint = () => {
-        window.print()
-    }
+
 
 
     // If no content but status is AVAILABLE, show Generate Button
@@ -104,10 +158,17 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
 
             {/* Overview */}
             <section className="space-y-4 text-center relative">
-                <div className="absolute top-0 right-0 hidden md:block print:hidden">
-                    <Button variant="ghost" size="sm" onClick={handlePrint} className="text-zinc-500 hover:text-white">
-                        <Printer className="w-4 h-4 mr-2" />
-                        Export PDF
+                {/* ELI5 Toggle - Moved to Top Right */}
+                <div className="absolute top-0 right-0 hidden md:block">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleSimplify}
+                        className="text-zinc-500 hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
+                        disabled={isSimplifying}
+                    >
+                        {isSimplifying ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Wand2 className="w-4 h-4 mr-2" />}
+                        {showSimplified ? "Show Original" : "Explain Like I'm 5"}
                     </Button>
                 </div>
 
@@ -117,19 +178,6 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
                 <h1 className="text-4xl md:text-5xl font-black tracking-tight">{topic.title}</h1>
 
                 <div className="relative max-w-2xl mx-auto group space-y-4">
-                    <div className="flex justify-end">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleSimplify}
-                            className="text-zinc-500 hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
-                            disabled={isSimplifying}
-                        >
-                            {isSimplifying ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Wand2 className="w-4 h-4 mr-2" />}
-                            {showSimplified ? "Show Original" : "Explain Like I'm 5"}
-                        </Button>
-                    </div>
-
                     <p className={cn(
                         "text-xl leading-relaxed transition-all duration-500",
                         showSimplified ? "text-blue-200 font-medium" : "text-zinc-300"
@@ -175,11 +223,12 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
                             </p>
 
                             {concept.example && (
-                                <div className="mt-4 bg-zinc-900/50 border-l-2 border-blue-500/30 pl-6 py-4 pr-6 rounded-r-lg">
-                                    <span className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2 block">Example & Application</span>
-                                    <p className="text-zinc-300 font-mono text-sm">
-                                        {concept.example}
-                                    </p>
+                                <div className="mt-4">
+                                    <span className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2 block ml-1">Example & Application</span>
+                                    <CodeBlock
+                                        code={concept.example}
+                                        language="Example"
+                                    />
                                 </div>
                             )}
                         </div>

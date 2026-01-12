@@ -5,13 +5,15 @@ import ReactFlow, {
     Controls,
     useNodesState,
     useEdgesState,
-    Node,
     Edge,
     NodeChange,
-    applyNodeChanges
+    applyNodeChanges,
+    Position,
+    Node as FlowNode
 } from 'reactflow'
 import 'reactflow/dist/style.css'
-import { TopicNode } from './topic-node'
+import { TopicNode } from '@/components/topic-node'
+import dagre from 'dagre'
 import { useCallback, useEffect } from 'react'
 import { updateNodePosition } from '@/app/actions'
 
@@ -19,21 +21,66 @@ const nodeTypes = {
     topicNode: TopicNode
 }
 
+// Layout configuration
+const dagreGraph = new dagre.graphlib.Graph()
+dagreGraph.setDefaultEdgeLabel(() => ({}))
+
+const nodeWidth = 180
+const nodeHeight = 60
+
+const getLayoutedElements = (nodes: any[], edges: Edge[]) => {
+    dagreGraph.setGraph({ rankdir: 'TB', ranksep: 80, nodesep: 100 }) // TB = Top to Bottom
+
+    nodes.forEach((node) => {
+        dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight })
+    })
+
+    edges.forEach((edge) => {
+        dagreGraph.setEdge(edge.source, edge.target)
+    })
+
+    dagre.layout(dagreGraph)
+
+    // @ts-ignore
+    const layoutedNodes = nodes.map((node) => {
+        const nodeWithPosition = dagreGraph.node(node.id)
+        return {
+            ...node,
+            targetPosition: 'top' as Position,
+            sourcePosition: 'bottom' as Position,
+            // Shift to center the node (dagre returns center point)
+            position: {
+                x: nodeWithPosition.x - nodeWidth / 2,
+                y: nodeWithPosition.y - nodeHeight / 2,
+            },
+        }
+    })
+
+    return { nodes: layoutedNodes, edges }
+}
+
 interface GraphProps {
-    initialNodes: Node[]
+    initialNodes: any[]
     initialEdges: Edge[]
 }
 
 export function GraphVisualizer({ initialNodes, initialEdges }: GraphProps) {
-    const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
-    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
+    const [nodes, setNodes, onNodesChange] = useNodesState([])
+    const [edges, setEdges, onEdgesChange] = useEdgesState([])
+
+    // Apply layout on initial load
+    useEffect(() => {
+        const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(initialNodes, initialEdges)
+        setNodes(layoutedNodes)
+        setEdges(layoutedEdges)
+    }, [initialNodes, initialEdges, setNodes, setEdges]) // Re-run if props change significantly
 
     // Handle node drag stop -> Persist to DB
-    const onNodeDragStop = useCallback((event: any, node: Node) => {
+    const onNodeDragStop = useCallback((event: any, node: any) => {
         updateNodePosition(node.id, node.position.x, node.position.y)
     }, [])
 
-    const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
+    const onNodeClick = useCallback((event: React.MouseEvent, node: any) => {
         if (node.data.status === 'LOCKED') return // Optional: prevent clicking locked nodes
         window.location.href = `/learn/${node.id}` // Using window.location for hard nav or router.push
     }, [])

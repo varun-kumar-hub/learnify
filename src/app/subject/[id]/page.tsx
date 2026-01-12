@@ -9,9 +9,11 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { StatsCards } from "@/components/stats-cards"
 import { TopicCard } from "@/components/topic-card"
+
 import { UpNextList } from "@/components/up-next-list"
 import { ActivityChart } from "@/components/activity-chart"
 import { Switch } from "@/components/ui/switch"
+import { SubjectHeaderActions } from "@/components/subject-header-actions"
 
 // Next.js 15+ convention: params is a promise
 export default async function SubjectPage({ params }: { params: Promise<{ id: string }> }) {
@@ -82,20 +84,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
 
                     <div className="h-4 w-px bg-white/10" />
 
-                    <Button variant="outline" size="sm" className="gap-2 border-dashed border-blue-500/30 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10">
-                        <Sparkles className="h-3 w-3" />
-                        AI Generate
-                    </Button>
-
-                    <Button variant="outline" size="sm" className="gap-2 bg-secondary/50 border-white/5 hover:bg-secondary">
-                        <LinkIcon className="h-3 w-3" />
-                        Link
-                    </Button>
-
-                    <Button size="sm" className="gap-2 bg-blue-600 hover:bg-blue-500 text-white">
-                        <Plus className="h-4 w-4" />
-                        Add Topic
-                    </Button>
+                    <SubjectHeaderActions subjectId={subject.id} title={subject.title} />
                 </div>
             </header>
 
@@ -128,7 +117,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
                                 <ActivityChart />
                             </div>
                             <div>
-                                <UpNextList />
+                                <UpNextList topics={nodes} />
                             </div>
                         </div>
                     </TabsContent>
@@ -152,9 +141,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
                         )}
                     </TabsContent>
 
-                    import {TopicCard} from "@/components/topic-card"
 
-                    // ... inside the component ...
 
                     <TabsContent value="topics">
                         {isEmpty ? (

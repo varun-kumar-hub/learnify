@@ -583,7 +583,7 @@ export async function generateQuiz(topicId: string) {
     if (!topic) throw new Error("Topic not found")
 
     // 2. Generate Quiz with Gemini
-    const apiKey = process.env.GEMINI_API_KEY
+    const apiKey = await getApiKeyInternal()
     if (!apiKey) throw new Error("Gemini API key not configured")
 
     const genAI = new GoogleGenerativeAI(apiKey)
@@ -673,3 +673,117 @@ export async function getStreak() {
     }
 }
 
+
+export async function incrementActivity(minutes: number) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const today = new Date().toISOString().split('T')[0]
+
+    const { data: text } = await supabase
+        .from('activity_logs')
+        .select('minutes_active')
+        .eq('user_id', user.id)
+        .eq('activity_date', today)
+        .single()
+
+    const current = text ? text.minutes_active : 0
+
+    await supabase.from('activity_logs').upsert({
+        user_id: user.id,
+        activity_date: today,
+        minutes_active: current + minutes
+    })
+}
+
+export async function getWeeklyActivity() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return []
+
+    const { data } = await supabase
+        .from('activity_logs')
+        .select('activity_date, minutes_active')
+        .eq('user_id', user.id)
+        .order('activity_date', { ascending: true })
+        .limit(7)
+
+    return data || []
+}
+
+export async function addTopic(subjectId: string, title: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Not authenticated")
+
+    // Verify ownership
+    const { data: subject } = await supabase
+        .from('subjects')
+        .select('id')
+        .eq('id', subjectId)
+        .eq('user_id', user.id)
+        .single()
+
+    if (!subject) throw new Error("Subject not found or access denied")
+
+    const { error } = await supabase
+        .from('topics')
+        .insert({
+            subject_id: subjectId,
+            title: title,
+            status: 'AVAILABLE'
+        })
+
+    if (error) throw error
+    revalidatePath(`/subject/${subjectId}`)
+}
+// Link Topics Feature
+export async function getTopicsSimple(subjectId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Not authenticated")
+
+    const { data, error } = await supabase
+        .from('topics')
+        .select('id, title, status')
+        .eq('subject_id', subjectId)
+        .order('created_at', { ascending: true })
+
+    if (error) throw error
+    return data || []
+}
+
+export async function linkTopics(parentTopicId: string, childTopicId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Not authenticated")
+
+    // Check circular dependency (Basic check: Parent != Child)
+    if (parentTopicId === childTopicId) {
+        throw new Error("Cannot link a topic to itself")
+    }
+
+    // TODO: Advanced circular check could be added here (A->B->A)
+
+    const { error } = await supabase
+        .from('topic_dependencies')
+        .insert({
+            parent_topic_id: parentTopicId,
+            child_topic_id: childTopicId
+        })
+
+    if (error) {
+        if (error.code === '23505') throw new Error("These topics are already linked")
+        throw error
+    }
+
+    // Revalidate to update graph
+    // We need subjectId to revalidate path... but we only have topicIds.
+    // We can fetch it or just rely on client refresh. 
+    // Ideally fetch subjectId.
+    const { data: topic } = await supabase.from('topics').select('subject_id').eq('id', parentTopicId).single()
+    if (topic) {
+        revalidatePath(`/subject/${topic.subject_id}`)
+    }
+}

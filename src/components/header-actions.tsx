@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Settings, Key, Flame } from 'lucide-react'
 import { SettingsDialog } from '@/components/settings-dialog'
 import { GeminiKeyModal } from '@/components/gemini-key-modal'
+import { getStreak } from '@/app/actions'
 
 interface HeaderActionsProps {
     profile: any
@@ -16,11 +17,9 @@ export function HeaderActions({ profile, email }: HeaderActionsProps) {
     const [streak, setStreak] = useState<{ count: number, active: boolean } | null>(null)
 
     // Fetch streak on mount
-    useState(() => {
-        import('@/app/actions').then(({ getStreak }) => {
-            getStreak().then(setStreak)
-        })
-    })
+    useEffect(() => {
+        getStreak().then(setStreak)
+    }, [])
 
     return (
         <div className="flex items-center gap-4">
