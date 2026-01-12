@@ -4,12 +4,17 @@ import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { BookOpen, CheckCircle, ArrowRight, Loader2 } from 'lucide-react'
+import { BookOpen, CheckCircle, ArrowRight, Loader2, Brain, CheckCircle2 } from 'lucide-react'
 import { generateContent, completeTopic } from '@/app/actions'
 import { FlashcardCarousel } from '@/components/flashcard-carousel'
 import { ChatInterface } from '@/components/chat-interface'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { QuizModal } from '@/components/quiz-modal'
+import { CodePlayground } from '@/components/code-playground'
+import { simplifyContent } from '@/app/actions'
+import { cn } from '@/lib/utils'
+import { Wand2, FileText, Printer, Flame } from 'lucide-react'
 
 interface TopicViewerProps {
     topic: any
@@ -20,6 +25,40 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
     const router = useRouter()
     const [isGenerating, startGeneration] = useTransition()
     const [isCompleting, startCompletion] = useTransition()
+    const [isQuizOpen, setIsQuizOpen] = useState(false)
+
+    // ELI5 State
+    const [isSimplifying, startSimplifying] = useTransition()
+    const [simplifiedOverview, setSimplifiedOverview] = useState<string | null>(null)
+    const [showSimplified, setShowSimplified] = useState(false)
+
+    // Check if topic is completed based on status
+    const isCompleted = topic.status === 'COMPLETED'
+
+    const handleComplete = () => {
+        startCompletion(async () => {
+            await completeTopic(topic.id)
+            router.push(`/subject/${topic.subject_id}`)
+        })
+    }
+
+    const handleSimplify = () => {
+        if (simplifiedOverview) {
+            setShowSimplified(!showSimplified)
+            return
+        }
+
+        startSimplifying(async () => {
+            const simplified = await simplifyContent(content.overview)
+            setSimplifiedOverview(simplified)
+            setShowSimplified(true)
+        })
+    }
+
+    const handlePrint = () => {
+        window.print()
+    }
+
 
     // If no content but status is AVAILABLE, show Generate Button
     if (!content && topic.status === 'AVAILABLE') {
@@ -64,29 +103,87 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
         <div className="max-w-4xl mx-auto space-y-12 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
             {/* Overview */}
-            <section className="space-y-4 text-center">
+            <section className="space-y-4 text-center relative">
+                <div className="absolute top-0 right-0 hidden md:block print:hidden">
+                    <Button variant="ghost" size="sm" onClick={handlePrint} className="text-zinc-500 hover:text-white">
+                        <Printer className="w-4 h-4 mr-2" />
+                        Export PDF
+                    </Button>
+                </div>
+
                 <span className="inline-block px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-sm font-medium border border-blue-500/20">
                     {topic.level}
                 </span>
                 <h1 className="text-4xl md:text-5xl font-black tracking-tight">{topic.title}</h1>
-                <p className="text-xl text-zinc-300 leading-relaxed max-w-2xl mx-auto">
-                    {content.overview}
-                </p>
+
+                <div className="relative max-w-2xl mx-auto group space-y-4">
+                    <div className="flex justify-end">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleSimplify}
+                            className="text-zinc-500 hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
+                            disabled={isSimplifying}
+                        >
+                            {isSimplifying ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Wand2 className="w-4 h-4 mr-2" />}
+                            {showSimplified ? "Show Original" : "Explain Like I'm 5"}
+                        </Button>
+                    </div>
+
+                    <p className={cn(
+                        "text-xl leading-relaxed transition-all duration-500",
+                        showSimplified ? "text-blue-200 font-medium" : "text-zinc-300"
+                    )}>
+                        {showSimplified ? simplifiedOverview : content.overview}
+                    </p>
+                </div>
             </section>
 
+            {/* Code Playground (Visible only if practice code exists) */}
+            {content.practice_code && (
+                <section className="space-y-4 print:hidden">
+                    <div className="flex items-center gap-2 mb-4">
+                        <h2 className="text-2xl font-bold">Interactive Playground</h2>
+                        <span className="text-xs bg-zinc-800 px-2 py-1 rounded text-zinc-400">Beta</span>
+                    </div>
+                    <CodePlayground
+                        initialCode={content.practice_code.snippet}
+                        language={content.practice_code.language}
+                    />
+                    {content.practice_code.description && (
+                        <p className="text-sm text-zinc-400 italic">
+                            {content.practice_code.description}
+                        </p>
+                    )}
+                </section>
+            )}
+
             {/* Core Concepts */}
-            <section className="grid gap-6 md:grid-cols-2">
-                {content.core_concepts.map((concept: any, idx: number) => (
-                    <Card key={idx} className="bg-zinc-900/50 border-zinc-800">
-                        <CardContent className="p-6 space-y-4">
-                            <h3 className="text-xl font-bold text-blue-200">{concept.title}</h3>
-                            <p className="text-zinc-400 leading-relaxed">{concept.explanation}</p>
-                            <div className="bg-blue-950/30 p-4 rounded-lg border border-blue-900/30 text-sm text-blue-100/80">
-                                <span className="font-semibold text-blue-400 block mb-1">Example:</span>
-                                {concept.example}
-                            </div>
-                        </CardContent>
-                    </Card>
+            {/* Core Concepts - Straight Path Layout */}
+            <section className="relative space-y-12 before:absolute before:left-4 md:before:left-8 before:top-4 before:bottom-4 before:w-0.5 before:bg-gradient-to-b before:from-blue-500 before:to-purple-500 before:opacity-20">
+                {content.core_concepts && Array.isArray(content.core_concepts) && content.core_concepts.map((concept: any, idx: number) => (
+                    <div key={idx} className="relative pl-12 md:pl-20">
+                        {/* Timeline Node */}
+                        <div className="absolute left-0 md:left-4 top-0 w-8 h-8 rounded-full bg-zinc-950 border border-blue-500/50 flex items-center justify-center z-10">
+                            <span className="text-xs font-mono text-blue-400">{idx + 1}</span>
+                        </div>
+
+                        <div className="space-y-4">
+                            <h3 className="text-2xl font-bold text-white mb-2">{concept.title}</h3>
+                            <p className="text-lg text-zinc-400 leading-relaxed max-w-3xl">
+                                {concept.explanation}
+                            </p>
+
+                            {concept.example && (
+                                <div className="mt-4 bg-zinc-900/50 border-l-2 border-blue-500/30 pl-6 py-4 pr-6 rounded-r-lg">
+                                    <span className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2 block">Example & Application</span>
+                                    <p className="text-zinc-300 font-mono text-sm">
+                                        {concept.example}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 ))}
             </section>
 
@@ -115,27 +212,51 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
             )}
 
             {/* Complete Action */}
-            <div className="flex flex-col items-center gap-6 pt-12 border-t border-white/10">
-                <p className="text-zinc-500">Finished this lesson?</p>
-                <div className="flex gap-4">
-                    <Link href={`/subject/${topic.subject_id}`}>
-                        <Button variant="outline">Back to Map</Button>
-                    </Link>
+            <div className="max-w-3xl mx-auto mt-12 mb-20 flex items-center justify-between gap-4">
+                <Button variant="outline" onClick={() => router.back()} className="border-white/10 hover:bg-white/5">
+                    Back to Map
+                </Button>
+
+                <div className="flex items-center gap-3">
                     <Button
-                        size="lg"
-                        onClick={() => startCompletion(async () => {
-                            await completeTopic(topic.id)
-                            router.push(`/subject/${topic.subject_id}`)
-                        })}
-                        disabled={isCompleting || topic.status === 'COMPLETED'}
-                        className={topic.status === 'COMPLETED' ? "bg-green-600 hover:bg-green-700" : ""}
+                        onClick={() => setIsQuizOpen(true)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white border-none"
                     >
-                        {isCompleting ? <Loader2 className="animate-spin" /> : <CheckCircle className="mr-2 h-5 w-5" />}
-                        {topic.status === 'COMPLETED' ? 'Completed' : 'Mark as Complete'}
+                        <Brain className="w-4 h-4 mr-2" />
+                        Take Quiz
+                    </Button>
+
+                    <Button
+                        onClick={() => handleComplete()}
+                        disabled={isCompleting || isCompleted}
+                        className={cn(
+                            "min-w-[160px]",
+                            isCompleted
+                                ? "bg-green-500/10 text-green-500 hover:bg-green-500/20 border-green-500/20"
+                                : "bg-white text-black hover:bg-zinc-200"
+                        )}
+                    >
+                        {isCompleted ? (
+                            <>
+                                <CheckCircle2 className="w-4 h-4 mr-2" />
+                                Completed
+                            </>
+                        ) : (
+                            <>
+                                {isCompleting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
+                                Mark as Complete
+                            </>
+                        )}
                     </Button>
                 </div>
             </div>
 
+            <QuizModal
+                isOpen={isQuizOpen}
+                onOpenChange={setIsQuizOpen}
+                topicId={topic.id}
+                topicTitle={topic.title}
+            />
             {/* AI Tutor Chat */}
             <ChatInterface topicId={topic.id} title={topic.title} />
 

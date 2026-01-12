@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Settings, Key } from 'lucide-react'
+import { Settings, Key, Flame } from 'lucide-react'
 import { SettingsDialog } from '@/components/settings-dialog'
 import { GeminiKeyModal } from '@/components/gemini-key-modal'
 
@@ -13,9 +13,24 @@ interface HeaderActionsProps {
 
 export function HeaderActions({ profile, email }: HeaderActionsProps) {
     const [isKeyModalOpen, setIsKeyModalOpen] = useState(false)
+    const [streak, setStreak] = useState<{ count: number, active: boolean } | null>(null)
+
+    // Fetch streak on mount
+    useState(() => {
+        import('@/app/actions').then(({ getStreak }) => {
+            getStreak().then(setStreak)
+        })
+    })
 
     return (
         <div className="flex items-center gap-4">
+            {/* Streak Indicator */}
+            {streak !== null && (
+                <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/10 border border-orange-500/20 rounded-full text-orange-400">
+                    <Flame className={`w-4 h-4 ${streak.active ? 'fill-orange-500 text-orange-500' : 'text-zinc-500'}`} />
+                    <span className="text-sm font-bold">{streak.count}</span>
+                </div>
+            )}
 
             {/* API Key Button (Prominent) */}
             <Button

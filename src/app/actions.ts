@@ -242,24 +242,27 @@ export async function generateTopics(subjectId: string) {
 
     // 3. Call Gemini
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" })
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
 
     const prompt = `
-        Act as an expert curriculum designer.
-        Create a knowledge graph for the subject: "${subject.title}".
-        Context: ${subject.description || "General comprehensive overview."}
-
+        Act as a **University Professor and Expert Curriculum Designer**.
+        Create a **comprehensive, advanced-level knowledge graph** for the subject: "${subject.title}".
+        Context: ${subject.description || "In-depth academic exploration."}
+        
+        Your goal is to structure a rigorous learning path that matches a top-tier university syllabus.
+        
         Return a JSON object with a list of "topics" and their "dependencies".
         
         Requirements:
-        1. "topics": Array of objects { "id": "t1", "title": "Topic Name", "description": "Short summary", "level": "Beginner|Intermediate|Advanced", "x": 0, "y": 0 }
-           - Generate 10-15 topics.
+        1. "topics": Array of objects { "id": "t1", "title": "Topic Name", "description": "Academic summary", "level": "Beginner|Intermediate|Advanced|Expert", "x": 0, "y": 0 }
+           - Generate **15-20** high-quality topics.
+           - Ensure granular breakdown of complex concepts.
            - "x" and "y": Assign logical coordinates for a directed acyclic graph (DAG) layout. Flow from top (y=0) to bottom. Spread x for branches.
            - "id": Use simple strings like "t1", "t2".
         
         2. "dependencies": Array of objects { "from": "t1", "to": "t2" }
            - "from" is the prerequisite for "to".
-           - Ensure valid learning order.
+           - Ensure a logical academic progression.
            - No circular dependencies.
         
         RETURN JSON ONLY. NO MARKDOWN.
@@ -348,33 +351,45 @@ export async function generateContent(topicId: string) {
 
     // 3. Call Gemini
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" })
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
 
     const prompt = `
-        Act as an expert tutor.
-        Generate a comprehensive lesson for the topic: "${topic.title}".
+        Act as a **Senior Subject Matter Expert**.
+        Generate a **detailed, advanced-level lesson** for the topic: "${topic.title}".
         Subject: "${topic.subjects.title}".
         Context: "${topic.subjects.description}".
         Level: "${topic.level}".
 
         Return a JSON object with the following structure:
         {
-            "overview": "Brief introduction (2-3 sentences)",
+            "overview": "Comprehensive academic introduction (3-5 sentences)",
+            "real_world_applications": [
+                { "title": "Application Area", "description": "How this concept applies to real-world engineering, business, or science." }
+            ],
             "core_concepts": [
-                { "title": "Concept Name", "explanation": "Detailed explanation", "example": "Real-world example" }
+                { "title": "Concept Name", "explanation": "In-depth technical explanation", "example": "Complex example or case study" }
             ],
             "flowchart": {
                 "nodes": [ { "id": "1", "label": "Start" } ],
                 "edges": [ { "from": "1", "to": "2", "label": "next" } ]
             },
+            "technical_deep_dive": {
+                 "title": "Advanced Insight",
+                 "content": "A paragraph explaining a nuance, edge case, or internal mechanism."
+            },
             "common_mistakes": [ "Mistake 1", "Mistake 2" ],
-            "summary": "Key takeaways",
+            "practice_code": {
+                "language": "python",
+                "snippet": "def example():\n    return 'Hello'",
+                "description": "Brief description of what this code does."
+            },
+            "summary": "Executive summary of key takeaways",
             "flashcards": [
-                { "front": "Question?", "back": "Answer" }
+                { "front": "Advanced Question?", "back": "Detailed Answer" }
             ]
         }
         
-        Keep the tone encouraging but educational.
+        Keep the tone professional, academic, and rigorous.
         RETURN JSON ONLY.
     `
 
@@ -426,6 +441,40 @@ export async function completeTopic(topicId: string) {
 
     // 1. Mark current as COMPLETED
     await supabase.from('topics').update({ status: 'COMPLETED' }).eq('id', topicId)
+
+    // 1b. Update Streak
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+        const today = new Date().toISOString().split('T')[0]
+
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('streak_count, last_active_date')
+            .eq('id', user.id)
+            .single()
+
+        if (profile) {
+            let newStreak = profile.streak_count || 0
+            const lastActive = profile.last_active_date
+
+            if (lastActive !== today) {
+                const yesterday = new Date()
+                yesterday.setDate(yesterday.getDate() - 1)
+                const yesterdayStr = yesterday.toISOString().split('T')[0]
+
+                if (lastActive === yesterdayStr) {
+                    newStreak += 1
+                } else {
+                    newStreak = 1 // Broken streak or first time
+                }
+
+                await supabase.from('profiles').update({
+                    streak_count: newStreak,
+                    last_active_date: today
+                }).eq('id', user.id)
+            }
+        }
+    }
 
     // 2. Find children (topics that depend on this one)
     const { data: childrenLinks } = await supabase
@@ -479,7 +528,7 @@ export async function chatWithTutor(topicId: string, messages: { role: string, c
 
     // 3. Gemini Chat
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" })
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
 
     // Construct history for Gemini
     // Ensure roles are mapped correctly (user -> user, model -> model)
@@ -520,3 +569,107 @@ If they ask about something unrelated, politely steer them back to ${topic.title
         return { role: 'model', content: "I'm having trouble connecting right now. Please check your API key or try again." }
     }
 }
+
+export async function generateQuiz(topicId: string) {
+    const supabase = await createClient()
+
+    // 1. Get Topic Details
+    const { data: topic } = await supabase
+        .from('topics')
+        .select('*, subjects(*)')
+        .eq('id', topicId)
+        .single()
+
+    if (!topic) throw new Error("Topic not found")
+
+    // 2. Generate Quiz with Gemini
+    const apiKey = process.env.GEMINI_API_KEY
+    if (!apiKey) throw new Error("Gemini API key not configured")
+
+    const genAI = new GoogleGenerativeAI(apiKey)
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
+
+    const prompt = `
+        Act as an expert tutor.
+        Generate a short quiz for the topic: "${topic.title}".
+        Subject: "${topic.subjects.title}".
+        Context: "${topic.subjects.description}".
+
+        Return a JSON object with a "questions" array (3-5 questions).
+        Each question object must be:
+        {
+            "id": "q1",
+            "question": "The actual question text?",
+            "options": ["Option A", "Option B", "Option C", "Option D"],
+            "correctAnswer": "Option A",
+            "explanation": "Why this is correct."
+        }
+
+        RETURN JSON ONLY. NO MARKDOWN.
+    `
+
+    try {
+        const result = await model.generateContent(prompt)
+        const response = await result.response
+        const text = response.text()
+        const jsonStr = text.replace(/```json\n|\n```/g, "").replace(/```/g, "").trim()
+        const data = JSON.parse(jsonStr)
+
+        if (!data.questions || !Array.isArray(data.questions)) throw new Error('Invalid AI response')
+
+        return data.questions
+    } catch (error) {
+        console.error('Quiz Generation Error:', error)
+        return null // Handle error gracefully on client
+    }
+}
+
+export async function simplifyContent(text: string) {
+    const apiKey = process.env.GEMINI_API_KEY
+    if (!apiKey) throw new Error("Gemini API key not configured")
+
+    const genAI = new GoogleGenerativeAI(apiKey)
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
+
+    const prompt = `
+        You are an expert teacher helping a student.
+        Rewrite the following text to be "explained like I'm 5" (ELI5).
+        Make it simple, using analogies where possible, but keep it accurate.
+        Keep the formatting strictly plain text or simple markdown.
+
+        Original Text:
+        "${text}"
+    `
+
+    try {
+        const result = await model.generateContent(prompt)
+        const response = await result.response
+        return response.text()
+    } catch (error) {
+        console.error("ELI5 Generation Error:", error)
+        throw new Error("Failed to simplify content.")
+    }
+}
+
+export async function getStreak() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { count: 0, active: false }
+
+    const { data } = await supabase
+        .from('profiles')
+        .select('streak_count, last_active_date')
+        .eq('id', user.id)
+        .single()
+
+    if (!data) return { count: 0, active: false }
+
+    const today = new Date().toISOString().split('T')[0]
+    const isActiveToday = data.last_active_date === today
+
+    return {
+        count: data.streak_count || 0,
+        active: isActiveToday
+    }
+}
+
