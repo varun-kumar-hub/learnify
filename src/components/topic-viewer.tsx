@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { BookOpen, CheckCircle, ArrowRight, Loader2, Brain, CheckCircle2, Sparkles, FileText, Printer, Flame, Wand2 } from 'lucide-react'
+import { BookOpen, CheckCircle2, ChevronRight, Play, RotateCcw, Brain, X, Sparkles, FileText, Printer, Share2, Flame, Wand2, Loader2 } from 'lucide-react'
 import { generateContent, completeTopic, incrementActivity } from '@/app/actions'
 import { FlashcardCarousel } from '@/components/flashcard-carousel'
 import { ChatInterface } from '@/components/chat-interface'
@@ -41,6 +41,18 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
             router.push(`/subject/${topic.subject_id}`)
         })
     }
+
+    // Body scroll lock
+    useEffect(() => {
+        if (showFlashcards || isQuizOpen) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = 'unset'
+        }
+        return () => {
+            document.body.style.overflow = 'unset'
+        }
+    }, [showFlashcards, isQuizOpen])
 
     // Activity Logging
     useEffect(() => {
@@ -156,22 +168,41 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
 
                         {/* Content Prose */}
                         <div className="prose prose-invert prose-lg max-w-none text-zinc-300 leading-relaxed pl-4 md:pl-14 border-l-2 border-zinc-800">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                components={{
+                                    strong: ({ node, ...props }) => <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400" {...props} />,
+                                    h3: ({ node, ...props }) => <h3 className="text-xl font-bold text-white mt-6 mb-3 border-l-4 border-blue-500 pl-3" {...props} />,
+                                    ul: ({ node, ...props }) => <ul className="list-disc pl-6 space-y-2 my-4" {...props} />,
+                                    li: ({ node, ...props }) => <li className="pl-1 marker:text-blue-500/50" {...props} />
+                                }}
+                            >
                                 {section.content}
                             </ReactMarkdown>
                         </div>
 
-                        {/* Example Block */}
+                        {/* Example Block - Redesigned to match "Applied Science" style */}
                         {section.example && (
-                            <div className="ml-4 md:ml-14 bg-cyan-950/30 border-l-4 border-cyan-500/50 p-6 rounded-r-lg my-6">
-                                <h4 className="text-cyan-400 font-bold uppercase text-xs tracking-wider mb-2 flex items-center gap-2">
-                                    <FileText className="w-4 h-4" />
-                                    Concrete Example
-                                </h4>
-                                <div className="text-cyan-100/90 text-base leading-relaxed">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                        {section.example}
-                                    </ReactMarkdown>
+                            <div className="ml-0 md:ml-14 my-10 group/example">
+                                <div className="bg-zinc-900/40 backdrop-blur-sm border border-emerald-500/20 rounded-2xl overflow-hidden shadow-xl transition-all duration-300 hover:border-emerald-500/40 hover:shadow-emerald-500/5">
+                                    <div className="p-6 md:p-8 space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="h-px flex-1 bg-emerald-500/20" />
+                                            <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-emerald-400">Applied Science</span>
+                                            <div className="h-px flex-1 bg-emerald-500/20" />
+                                        </div>
+                                        <div className="prose prose-invert prose-emerald max-w-none text-zinc-300 leading-relaxed font-light">
+                                            <ReactMarkdown
+                                                remarkPlugins={[remarkGfm]}
+                                                components={{
+                                                    strong: ({ node, ...props }) => <span className="font-bold text-emerald-400" {...props} />,
+                                                    code: ({ node, ...props }) => <code className="bg-emerald-500/10 text-emerald-300 px-1.5 py-0.5 rounded text-sm font-mono border border-emerald-500/20" {...props} />
+                                                }}
+                                            >
+                                                {section.example}
+                                            </ReactMarkdown>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -291,32 +322,50 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
             )}
 
             {/* Flashcards */}
-            {
-                content.flashcards && content.flashcards.length > 0 && (
-                    <section className="space-y-6">
-                        {!showFlashcards ? (
-                            <div className="flex justify-center">
-                                <Button
-                                    onClick={() => setShowFlashcards(true)}
-                                    size="lg"
-                                    className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-8 py-6 rounded-full text-lg shadow-lg shadow-purple-900/20 transition-all hover:scale-105"
-                                >
-                                    <Brain className="w-5 h-5 mr-2" />
-                                    Practice with Flashcards
-                                </Button>
-                            </div>
-                        ) : (
-                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="text-center mb-6">
-                                    <h2 className="text-2xl font-bold text-white">Interactive Flashcards</h2>
-                                    <p className="text-zinc-500">Test your knowledge before completing the topic.</p>
-                                </div>
-                                <FlashcardCarousel flashcards={content.flashcards} />
-                            </div>
-                        )}
-                    </section>
-                )
-            }
+            {/* Flashcards Toggle Button */}
+            {content.flashcards && content.flashcards.length > 0 && (
+                <section className="flex justify-center py-8">
+                    <Button
+                        onClick={() => setShowFlashcards(true)}
+                        size="lg"
+                        className="bg-purple-600 hover:bg-purple-700 text-white font-medium px-8 py-6 rounded-full text-lg shadow-lg shadow-purple-900/20 transition-all hover:scale-105"
+                    >
+                        <Brain className="w-5 h-5 mr-2" />
+                        Practice with Flashcards
+                    </Button>
+                </section>
+            )}
+
+            {/* Flashcards Modal Overlay */}
+            {showFlashcards && content.flashcards && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950 p-4 animate-in fade-in duration-200">
+                    <div className="w-full max-w-4xl relative">
+                        <Button
+                            onClick={() => setShowFlashcards(false)}
+                            variant="ghost"
+                            className="absolute -top-12 right-0 text-zinc-400 hover:text-white"
+                        >
+                            <X className="w-6 h-6 mr-2" />
+                            Close
+                        </Button>
+                        <div className="text-center mb-8">
+                            <h2 className="text-3xl font-bold text-white mb-2">Interactive Flashcards</h2>
+                            <p className="text-zinc-400">Test your knowledge</p>
+                        </div>
+                        <FlashcardCarousel flashcards={content.flashcards} />
+
+                        <div className="flex justify-center mt-8">
+                            <Button
+                                onClick={() => setShowFlashcards(false)}
+                                variant="outline"
+                                className="border-white/10 hover:bg-white/10 text-zinc-400 hover:text-white"
+                            >
+                                Stop Practicing
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Complete Action */}
             <div className="max-w-3xl mx-auto mt-12 mb-20 flex items-center justify-between gap-4">

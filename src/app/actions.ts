@@ -396,9 +396,10 @@ export async function generateContent(topicId: string) {
         **Constraints:**
         1. **Conciseness:** Keep each section tight (around 6-7 lines). Get straight to the point.
         2. **Visuals:** You MUST include at least **2 diagrams** (Mermaid) and **1 table** across the sections.
-        3. **Flow:** ensure the sections transition logically.
-        4. **Tone:** Academic, patient, and authoritative.
-        5. **Quantity:** Generate exactly **7 flashcards**.
+        3. **Examples:** At least one of the sections MUST have a detailed \`example\` provided.
+        4. **Flow:** ensure the sections transition logically.
+        5. **Tone:** Academic, patient, and authoritative.
+        6. **Quantity:** Generate exactly **7 flashcards** covering key concepts.
 
         RETURN JSON ONLY.
     `

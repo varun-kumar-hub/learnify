@@ -14,8 +14,13 @@ export function MermaidDiagram({ chart }: { chart: string }) {
             startOnLoad: false,
             theme: 'dark',
             securityLevel: 'loose',
-            fontFamily: 'inherit'
+            fontFamily: 'inherit',
+            suppressErrorRendering: true, // Attempt to suppress default error UI
         })
+        mermaid.parseError = (err) => {
+            // Suppress console error to avoid clutter, or just log clearly
+            // console.warn("Mermaid Parse Error Suppressed:", err) 
+        }
     }, [])
 
     useEffect(() => {

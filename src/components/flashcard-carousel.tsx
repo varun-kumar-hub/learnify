@@ -45,13 +45,19 @@ export function FlashcardCarousel({ flashcards }: { flashcards: Flashcard[] }) {
                 >
                     {/* Front */}
                     <div className="absolute inset-0 backface-hidden">
-                        <Card className="w-full h-full bg-zinc-900 border border-zinc-800 flex flex-col items-center justify-center p-8 text-center shadow-xl relative overflow-hidden group-hover:border-blue-500/30 transition-colors rounded-2xl">
-                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
-                            <CardContent className="p-0 z-10 space-y-6 flex flex-col items-center">
-                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-zinc-800 text-zinc-500 text-xs font-serif italic border border-zinc-700/50">Q</span>
-                                <h3 className="text-xl md:text-2xl font-medium text-zinc-100 leading-relaxed tracking-tight max-w-lg">
+                        <Card className="w-full h-full bg-zinc-900/40 backdrop-blur-xl border border-white/10 flex flex-col items-center justify-center p-12 text-center shadow-[0_0_50px_-12px_rgba(59,130,246,0.3)] relative overflow-hidden group-hover:border-blue-500/50 transition-all duration-500 rounded-[2.5rem]">
+                            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-purple-500/10" />
+                            <CardContent className="p-0 z-10 space-y-10 flex flex-col items-center w-full">
+                                <div className="px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-[0.2em]">Question</div>
+                                <h3 className="text-xl md:text-3xl font-serif font-medium text-white leading-snug max-w-2xl drop-shadow-xl text-balance">
                                     {currentCard.front}
                                 </h3>
+                                <div className="pt-8 opacity-40 group-hover:opacity-100 transition-opacity duration-300">
+                                    <div className="flex items-center gap-2 text-zinc-400 text-sm font-medium">
+                                        <RotateCw className="w-4 h-4 animate-spin-slow" />
+                                        Click to flip
+                                    </div>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
@@ -61,11 +67,11 @@ export function FlashcardCarousel({ flashcards }: { flashcards: Flashcard[] }) {
                         className="absolute inset-0 backface-hidden"
                         style={{ transform: 'rotateY(180deg)' }}
                     >
-                        <Card className="w-full h-full bg-zinc-900 border border-emerald-500/20 flex flex-col items-center justify-center p-8 text-center shadow-2xl relative overflow-hidden rounded-2xl">
-                            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-teal-900/10" />
-                            <CardContent className="p-0 z-10 space-y-6 flex flex-col items-center">
-                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-900/20 text-emerald-400 text-xs font-serif italic border border-emerald-500/20">A</span>
-                                <p className="text-lg text-zinc-200 leading-relaxed font-light max-w-lg">
+                        <Card className="w-full h-full bg-zinc-900/90 backdrop-blur-2xl border border-emerald-500/30 flex flex-col items-center justify-center p-12 text-center shadow-[0_0_50px_-12px_rgba(16,185,129,0.3)] relative overflow-hidden rounded-[2.5rem]">
+                            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-teal-500/10" />
+                            <CardContent className="p-0 z-10 space-y-10 flex flex-col items-center w-full">
+                                <div className="px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-[0.2em]">Explanation</div>
+                                <p className="text-lg md:text-xl text-zinc-100 leading-relaxed max-w-2xl font-serif text-balance">
                                     {currentCard.back}
                                 </p>
                             </CardContent>
