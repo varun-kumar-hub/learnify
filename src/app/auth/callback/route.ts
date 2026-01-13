@@ -62,13 +62,7 @@ export async function GET(request: Request) {
 
             // Apply the captured cookies to the response
             responseCookies.forEach(({ name, value, options }) => {
-                response.cookies.set(name, value, {
-                    ...options,
-                    sameSite: 'lax',
-                    path: '/',
-                    // Allow Supabase/Browser to decide secure status, or fallback to false to ensure it sticks
-                    secure: process.env.NODE_ENV === 'production' ? true : false,
-                });
+                response.cookies.set(name, value, options);
             });
 
             return response;

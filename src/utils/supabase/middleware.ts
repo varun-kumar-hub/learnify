@@ -22,12 +22,7 @@ export async function updateSession(request: NextRequest) {
                         request,
                     })
                     cookiesToSet.forEach(({ name, value, options }) =>
-                        supabaseResponse.cookies.set(name, value, {
-                            ...options,
-                            sameSite: 'lax',
-                            path: '/',
-                            secure: process.env.NODE_ENV === 'production',
-                        })
+                        supabaseResponse.cookies.set(name, value, options)
                     )
                 },
             },
