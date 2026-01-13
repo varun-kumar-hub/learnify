@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
     Dialog,
@@ -9,14 +9,12 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-    DialogFooter
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Settings, LogOut, Key, User, Loader2 } from 'lucide-react'
-import { logout, updateProfile, deleteGeminiKey } from '@/app/actions' // We will implement these
-import { useToast } from '@/hooks/use-toast' // Assuming shadcn toast exists, or we use simple alert
+import { Settings, LogOut, Key, Flame, Loader2 } from 'lucide-react'
+import { logout, updateProfile, deleteGeminiKey } from '@/app/actions'
 
 interface SettingsDialogProps {
     initialName?: string
@@ -25,6 +23,7 @@ interface SettingsDialogProps {
 
 export function SettingsDialog({ initialName = "", hasKey = false }: SettingsDialogProps) {
     const [open, setOpen] = useState(false)
+    const [streak, setStreak] = useState<{ count: number, active: boolean } | null>(null)
 
     // Profile State
     const [name, setName] = useState(initialName)
@@ -33,6 +32,15 @@ export function SettingsDialog({ initialName = "", hasKey = false }: SettingsDia
     // Key State
     const [key, setKey] = useState("")
     const [isKeyPending, startKeyTransition] = useTransition()
+
+    // Fetch streak when open
+    useEffect(() => {
+        if (open) {
+            import('@/app/actions').then(({ getStreak }) => {
+                getStreak().then(setStreak)
+            })
+        }
+    }, [open])
 
     async function handleSaveProfile() {
         startProfileTransition(async () => {
@@ -49,7 +57,7 @@ export function SettingsDialog({ initialName = "", hasKey = false }: SettingsDia
         startKeyTransition(async () => {
             try {
                 await updateProfile({ gemini_api_key: key })
-                setKey("") // Clear local state for security
+                setKey("")
                 setOpen(false)
             } catch (e) {
                 console.error(e)
@@ -61,7 +69,7 @@ export function SettingsDialog({ initialName = "", hasKey = false }: SettingsDia
         if (!confirm("Are you sure? AI features will stop working.")) return;
         startKeyTransition(async () => {
             try {
-                await deleteGeminiKey() // Calls server action
+                await deleteGeminiKey()
                 setOpen(false)
             } catch (e) {
                 console.error(e)
@@ -76,85 +84,100 @@ export function SettingsDialog({ initialName = "", hasKey = false }: SettingsDia
                     <Settings className="h-5 w-5" />
                 </Button>
             </DialogTrigger>
-            <DialogContent className="absolute top-16 right-6 w-[400px] bg-zinc-950 border-zinc-800 text-white shadow-2xl p-0 overflow-hidden sm:rounded-xl data-[state=open]:slide-in-from-top-2 data-[state=open]:fade-in-0 sm:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=closed]:fade-out-0">
-                <DialogHeader className="relative pr-16 text-left">
-                    <DialogTitle>Settings</DialogTitle>
-                    <DialogDescription>
-                        Manage your account preferences.
-                    </DialogDescription>
 
-                    {/* Top Right Log Out Button */}
-                    <form action={logout} className="absolute top-0 right-0">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-zinc-500 hover:text-red-400 hover:bg-red-950/20 rounded-full h-8 w-8"
-                            title="Log Out"
-                        >
-                            <LogOut className="h-4 w-4" />
-                        </Button>
-                    </form>
-                </DialogHeader>
+            {/* Redesigned Content: Absolute positioned to look like a dropdown menu below the trigger */}
+            <DialogContent className="absolute top-14 right-4 w-[380px] bg-zinc-950/95 backdrop-blur-xl border-zinc-800 text-white shadow-2xl p-0 overflow-hidden rounded-xl data-[state=open]:slide-in-from-top-2 data-[state=open]:fade-in-0 sm:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=closed]:fade-out-0">
+
+                {/* Header Area */}
+                <div className="p-6 pb-2 border-b border-white/5 relative">
+                    <DialogHeader className="text-left space-y-1">
+                        <div className="flex items-center justify-between">
+                            <DialogTitle className="text-lg">Settings</DialogTitle>
+                        </div>
+                        <DialogDescription>
+                            Account & Preferences
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {/* Streak Badge in Header */}
+                    {streak !== null && (
+                        <div className="mt-4 flex items-center justify-between p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs text-orange-200 uppercase font-bold tracking-wider">Current Streak</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-orange-400">
+                                <Flame className={`w-4 h-4 ${streak.active ? 'fill-orange-500 text-orange-500' : 'text-zinc-500'}`} />
+                                <span className="font-mono font-bold text-lg">{streak.count}</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
 
                 <Tabs defaultValue="profile" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="profile">Profile</TabsTrigger>
-                        <TabsTrigger value="api-key">API Key</TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-2 bg-zinc-900/50 p-1 m-4 mb-0 w-[calc(100%-2rem)] rounded-lg">
+                        <TabsTrigger value="profile" className="rounded-md data-[state=active]:bg-zinc-800 data-[state=active]:text-white">Profile</TabsTrigger>
+                        <TabsTrigger value="api-key" className="rounded-md data-[state=active]:bg-zinc-800 data-[state=active]:text-white flex items-center gap-2">
+                            API Key
+                            {hasKey && <div className="w-1.5 h-1.5 rounded-full bg-green-500" />}
+                        </TabsTrigger>
                     </TabsList>
 
                     {/* PROFILE TAB */}
-                    <TabsContent value="profile" className="space-y-4 py-4">
+                    <TabsContent value="profile" className="p-6 pt-4 space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name">Display Name</Label>
+                            <Label htmlFor="name" className="text-zinc-400">Display Name</Label>
                             <Input
                                 id="name"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="Ex. John Doe"
+                                className="bg-zinc-900 border-zinc-800 focus:border-blue-500/50"
                             />
-                            <p className="text-xs text-muted-foreground">
-                                This name will be displayed on your dashboard.
-                            </p>
                         </div>
-                        <div className="flex justify-end">
-                            <Button onClick={handleSaveProfile} disabled={isProfilePending}>
-                                {isProfilePending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Save Changes
-                            </Button>
-                        </div>
+                        <Button onClick={handleSaveProfile} disabled={isProfilePending} className="w-full bg-white text-black hover:bg-zinc-200">
+                            {isProfilePending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Save Profile
+                        </Button>
                     </TabsContent>
 
                     {/* API KEY TAB */}
-                    <TabsContent value="api-key" className="space-y-4 py-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="key" className="flex items-center gap-2">
-                                Gemini API Key
-                                {hasKey && <span className="text-xs text-green-500 font-mono bg-green-950/30 px-2 py-0.5 rounded">Active</span>}
-                            </Label>
-                            <Input
-                                id="key"
-                                type="password"
-                                value={key}
-                                onChange={(e) => setKey(e.target.value)}
-                                placeholder={hasKey ? "••••••••••••••••" : "Paste your API Key here"}
-                            />
-                            <p className="text-xs text-muted-foreground">
-                                Your key is encrypted and stored securely.
-                            </p>
+                    <TabsContent value="api-key" className="p-6 pt-4 space-y-4">
+                        <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 leading-relaxed">
+                            <p>An API Key is required for AI features.</p>
                         </div>
-                        <div className="flex justify-between gap-2">
+
+                        <div className="space-y-2">
+                            <Label htmlFor="key" className="text-zinc-400">Gemini API Key</Label>
+                            <div className="relative">
+                                <Input
+                                    id="key"
+                                    type="password"
+                                    value={key}
+                                    onChange={(e) => setKey(e.target.value)}
+                                    placeholder={hasKey ? "••••••••••••••••" : "Paste key here"}
+                                    className="bg-zinc-900 border-zinc-800 pr-10 focus:border-blue-500/50"
+                                />
+                                <Key className="absolute right-3 top-2.5 h-4 w-4 text-zinc-500" />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-2">
                             {hasKey && (
-                                <Button variant="destructive" size="sm" onClick={handleDeleteKey} disabled={isKeyPending}>
-                                    Remove Key
+                                <Button variant="destructive" className="flex-1 bg-red-950/30 text-red-400 hover:bg-red-950/50 border border-red-900/20" onClick={handleDeleteKey} disabled={isKeyPending}>
+                                    Remove
                                 </Button>
                             )}
-                            <Button onClick={handleSaveKey} disabled={isKeyPending || !key} className="ml-auto">
+                            <Button onClick={handleSaveKey} disabled={isKeyPending || !key} className="flex-1 bg-white text-black hover:bg-zinc-200">
                                 {isKeyPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Save Key
+                                {hasKey ? 'Update Key' : 'Save Key'}
                             </Button>
                         </div>
                     </TabsContent>
                 </Tabs>
+
+                <div className="p-4 bg-zinc-900/30 border-t border-white/5 flex justify-center">
+                    <p className="text-[10px] text-zinc-600 uppercase tracking-widest font-medium">Learnify v1.0</p>
+                </div>
             </DialogContent>
         </Dialog>
     )

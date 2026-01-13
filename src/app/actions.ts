@@ -371,7 +371,7 @@ export async function generateContent(topicId: string) {
                     "type": "concept",
                     "heading": "1. [Concept Name]",
                     "content": "Concise, clear explanation (approx. 100-150 words). Focus on the core idea. Avoid wall of text.",
-                    "diagram": "OPTIONAL: A valid Mermaid.js flowchart string. CRITICAL: You MUST wrap ALL node labels in double quotes (e.g., A[\"My Label\"] or B{\"Decision?\"}). Failure to quote labels with special characters (brackets, parentheses, colons, etc.) will crash the app.",
+                    "diagram": "OPTIONAL: A valid Mermaid.js flowchart string. CRITICAL: You MUST wrap ALL node labels in double quotes (e.g., A[\"My Label\"] or B{\"Decision?\"}). Do NOT use parentheses inside the quote unless really needed, and prefer simpler labels if possible. Example: graph TD; A[\"Start\"] --> B[\"Process\"];",
                     "table": { "headers": ["Col 1", "Col 2"], "rows": [["Val 1", "Val 2"]] } // OPTIONAL: Only if a comparison is needed here.
                 },
                 {

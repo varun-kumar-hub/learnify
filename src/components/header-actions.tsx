@@ -23,32 +23,13 @@ export function HeaderActions({ profile, email }: HeaderActionsProps) {
 
     return (
         <div className="flex items-center gap-4">
-            {/* Streak Indicator */}
-            {streak !== null && (
-                <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/10 border border-orange-500/20 rounded-full text-orange-400">
-                    <Flame className={`w-4 h-4 ${streak.active ? 'fill-orange-500 text-orange-500' : 'text-zinc-500'}`} />
-                    <span className="text-sm font-bold">{streak.count}</span>
-                </div>
-            )}
-
-            {/* API Key Button (Prominent) */}
-            <Button
-                variant="outline"
-                className="gap-2 border-blue-500/30 bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 hover:text-blue-300 transition-all font-medium"
-                onClick={() => setIsKeyModalOpen(true)}
-            >
-                <Key className="h-4 w-4" />
-                <span>Gemini API Key</span>
-                <span className={isKeyModalOpen ? "w-2 h-2 rounded-full bg-green-500 animate-pulse" : "w-2 h-2 rounded-full bg-zinc-600"} />
-            </Button>
-
             {/* User Details */}
             <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium text-white">{profile?.full_name}</p>
                 <p className="text-xs text-zinc-500">{email}</p>
             </div>
 
-            {/* Settings Dialog */}
+            {/* Settings Dialog (Includes Streak & API Key now) */}
             <SettingsDialog initialName={profile?.full_name as string} hasKey={profile?.hasKey || false} />
 
             {/* Direct Log Out Button (Visible) */}
@@ -62,13 +43,6 @@ export function HeaderActions({ profile, email }: HeaderActionsProps) {
                     <LogOut className="h-5 w-5" />
                 </Button>
             </form>
-
-            {/* API Key Modal (Standalone) */}
-            <GeminiKeyModal
-                isOpen={isKeyModalOpen}
-                onClose={() => setIsKeyModalOpen(false)}
-                hasKey={profile?.hasKey || false}
-            />
         </div>
     )
 }
