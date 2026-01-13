@@ -10,7 +10,7 @@ export default async function LandingPage() {
   const { data: { user } } = await supabase.auth.getUser();
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen text-foreground relative z-10">
       <LandingHero isLoggedIn={!!user} />
       <FeaturesSection />
       <MethodologySection />

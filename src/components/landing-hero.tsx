@@ -53,14 +53,14 @@ export function LandingHero({ isLoggedIn }: { isLoggedIn?: boolean }) {
             </nav>
 
             <main className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-80px)] px-6 text-center">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 dark:text-blue-400 text-sm font-medium mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary dark:text-primary text-sm font-medium mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <Sparkles className="w-4 h-4" />
                     <span>The Future of Learning is Here</span>
                 </div>
 
                 <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-8 max-w-5xl bg-gradient-to-b from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100 drop-shadow-sm">
                     Turn Any Topic Into a <br />
-                    <span className="text-blue-600 dark:text-blue-500">Structured Knowledge Graph</span>
+                    <span className="text-primary">Structured Knowledge Graph</span>
                 </h1>
 
                 <p className="text-xl text-muted-foreground max-w-2xl mb-12 leading-relaxed animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
@@ -70,14 +70,14 @@ export function LandingHero({ isLoggedIn }: { isLoggedIn?: boolean }) {
                 <div className="flex flex-col sm:flex-row items-center gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
                     {isLoggedIn ? (
                         <Link href="/dashboard">
-                            <Button size="lg" className="h-14 px-8 text-lg bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg shadow-blue-500/20 transition-all hover:scale-105">
+                            <Button size="lg" className="h-14 px-8 text-lg bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-lg shadow-primary/25 transition-all hover:scale-105">
                                 Go to Dashboard
                                 <Brain className="ml-2 w-5 h-5" />
                             </Button>
                         </Link>
                     ) : (
                         <Link href="/login">
-                            <Button size="lg" className="h-14 px-8 text-lg bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg shadow-blue-500/20 transition-all hover:scale-105">
+                            <Button size="lg" className="h-14 px-8 text-lg bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-lg shadow-primary/25 transition-all hover:scale-105">
                                 Start Learning Free
                                 <Zap className="ml-2 w-5 h-5" />
                             </Button>

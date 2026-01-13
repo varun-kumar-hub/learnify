@@ -16,6 +16,14 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { logout } from '@/app/actions'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
 
 const navigation = [
     { name: 'Home', href: '/', icon: Home },
@@ -28,6 +36,7 @@ const navigation = [
 export function AppSidebar() {
     const pathname = usePathname()
     const [isOpen, setIsOpen] = useState(false)
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false)
 
     return (
         <>
@@ -123,25 +132,48 @@ export function AppSidebar() {
 
                 {/* Footer Actions */}
                 <div className="w-full px-3 mt-auto space-y-2">
-                    <form action={async () => {
-                        await logout()
-                    }}>
-                        <Button
-                            variant="ghost"
-                            className="w-full flex items-center justify-start h-12 px-3 rounded-xl text-zinc-500 hover:text-red-400 hover:bg-red-950/20"
-                        >
-                            <LogOut className="h-6 w-6 min-w-[1.5rem] shrink-0" />
-                            <span className={cn(
-                                "ml-4 font-medium transition-opacity duration-300 whitespace-nowrap",
-                                "md:opacity-0 md:group-hover:opacity-100",
-                                "opacity-100"
-                            )}>
-                                Log Out
-                            </span>
-                        </Button>
-                    </form>
+                    <Button
+                        variant="ghost"
+                        onClick={() => setShowLogoutDialog(true)}
+                        className="w-full flex items-center justify-start h-12 px-3 rounded-xl text-zinc-500 hover:text-red-400 hover:bg-red-950/20"
+                    >
+                        <LogOut className="h-6 w-6 min-w-[1.5rem] shrink-0" />
+                        <span className={cn(
+                            "ml-4 font-medium transition-opacity duration-300 whitespace-nowrap",
+                            "md:opacity-0 md:group-hover:opacity-100",
+                            "opacity-100"
+                        )}>
+                            Log Out
+                        </span>
+                    </Button>
                 </div>
             </div>
+
+            {/* Logout Confirmation Dialog */}
+            <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+                <DialogContent className="sm:max-w-[425px] bg-card border-border">
+                    <DialogHeader>
+                        <DialogTitle>Sign out</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to sign out of your account?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex gap-2 sm:gap-0">
+                        <Button variant="ghost" onClick={() => setShowLogoutDialog(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={async () => {
+                                await logout()
+                                setShowLogoutDialog(false)
+                            }}
+                        >
+                            Log Out
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     )
 }

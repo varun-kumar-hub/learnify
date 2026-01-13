@@ -31,8 +31,8 @@
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.15 0.02 260);
 
-    --primary: oklch(0.55 0.22 260);
-    /* #3B82F6 - Intelligent Blue */
+    --primary: oklch(0.65 0.18 240);
+    /* #0EA5E9 - Sky Blue */
     --primary-foreground: oklch(1 0 0);
 
     --secondary: oklch(0.96 0.01 240);
@@ -53,12 +53,12 @@
     --border: oklch(0.92 0.01 240);
     /* #E2E8F0 - Slate 200 */
     --input: oklch(0.92 0.01 240);
-    --ring: oklch(0.55 0.22 260);
+    --ring: oklch(0.65 0.18 240);
 
     /* Custom Tokens */
-    --grid-color: rgba(59, 130, 246, 0.08);
-    /* Faint Blue Grid */
-    --glow-color: rgba(59, 130, 246, 0.15);
+    --grid-color: rgba(14, 165, 233, 0.1);
+    /* Sky Blue Grid */
+    --glow-color: rgba(14, 165, 233, 0.2);
   }
 
   .dark {
@@ -75,8 +75,8 @@
     --popover: oklch(0.15 0.02 260);
     --popover-foreground: oklch(0.98 0 0);
 
-    --primary: oklch(0.6 0.18 250);
-    /* Electric Blue */
+    --primary: oklch(0.7 0.16 240);
+    /* Bright Sky Blue */
     --primary-foreground: oklch(1 0 0);
 
     --secondary: oklch(0.2 0.03 260);
@@ -94,11 +94,11 @@
 
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.6 0.18 250);
+    --ring: oklch(0.7 0.16 240);
 
     /* Custom Tokens */
-    --grid-color: rgba(255, 255, 255, 0.03);
-    --glow-color: rgba(56, 189, 248, 0.15);
+    --grid-color: rgba(56, 189, 248, 0.08);
+    --glow-color: rgba(56, 189, 248, 0.25);
   }
 
   * {
