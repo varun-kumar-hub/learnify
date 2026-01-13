@@ -269,6 +269,21 @@ export function TopicViewer({ topic, content, hasApiKey = false }: TopicViewerPr
                                 </table>
                             </div>
                         )}
+
+                        {/* Example Block */}
+                        {section.example && (
+                            <div className="ml-4 md:ml-14 my-8 p-6 rounded-xl bg-purple-900/10 border border-purple-500/20">
+                                <div className="flex items-center gap-2 mb-3 text-purple-400">
+                                    <Sparkles className="w-5 h-5" />
+                                    <span className="text-sm font-bold uppercase tracking-wider">Example</span>
+                                </div>
+                                <div className="text-zinc-300 italic leading-relaxed prose prose-invert">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                        {section.example}
+                                    </ReactMarkdown>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 ))}
             </section>

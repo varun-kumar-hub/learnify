@@ -141,6 +141,7 @@ export async function createSubject(formData: FormData) {
             user_id: user.id,
             title,
             description,
+            is_public: true, // Auto-public by default to encourage community sharing
         })
 
     if (error) {
@@ -337,14 +338,10 @@ export async function generateTopics(subjectId: string) {
         })
 
         // Identify Roots (No dependencies pointing TO them)
-        const dependentTopicIds = new Set(data.dependencies.map((d: any) => d.to))
-
         topicsToInsert.forEach((t: any, idx: number) => {
-            const originalId = data.topics[idx].id
-            // If nothing depends on it? No, if nothing points TO it.
-            if (!dependentTopicIds.has(originalId)) {
-                t.status = 'AVAILABLE'
-            }
+            // UNLOCK ALL by default to allow non-linear learning as requested by users.
+            // Original logic checked roots, but user feedback indicates preference for immediate access.
+            t.status = 'AVAILABLE'
         })
 
         const { error: insertError } = await supabase.from('topics').insert(topicsToInsert)
@@ -413,6 +410,7 @@ export async function generateContent(topicId: string) {
                     "type": "concept",
                     "heading": "1. [Concept Name]",
                     "content": "Concise, clear explanation (approx. 100-150 words). Focus on the core idea. Avoid wall of text.",
+                    "example": "A concrete, real-world example illustrating this specific concept effectively.",
                     "diagram": "OPTIONAL: A valid Mermaid.js flowchart string. CRITICAL: You MUST wrap ALL node labels in double quotes (e.g., A[\"My Label\"] or B{\"Decision?\"}). Do NOT use parentheses inside the quote unless really needed, and prefer simpler labels if possible. Example: graph TD; A[\"Start\"] --> B[\"Process\"];",
                     "table": { "headers": ["Col 1", "Col 2"], "rows": [["Val 1", "Val 2"]] } // OPTIONAL: Only if a comparison is needed here.
                 },
@@ -420,6 +418,7 @@ export async function generateContent(topicId: string) {
                     "type": "concept",
                     "heading": "2. [Next Concept]",
                     "content": "Continue the narrative...",
+                    "example": "Another relevant example...",
                     "diagram": "..." 
                 }
             ],
