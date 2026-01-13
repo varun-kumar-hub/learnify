@@ -155,10 +155,7 @@ export function SettingsDialog({ initialName = "", hasKey = false }: SettingsDia
                         </div>
                     </TabsContent>
                 </Tabs>
-
-            </Tabs>
-            {/* Footer removed: Log Out moved to Header */}
-        </DialogContent>
-        </Dialog >
+            </DialogContent>
+        </Dialog>
     )
 }
