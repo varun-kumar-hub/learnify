@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Sparkles, Loader2, Link as LinkIcon, Plus, Check } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { generateTopics, addTopic } from '@/app/actions'
 import { LinkTopicModal } from '@/components/link-topic-modal'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -12,9 +13,10 @@ import { Label } from '@/components/ui/label'
 interface SubjectHeaderActionsProps {
     subjectId: string
     title: string
+    hasApiKey?: boolean
 }
 
-export function SubjectHeaderActions({ subjectId, title }: SubjectHeaderActionsProps) {
+export function SubjectHeaderActions({ subjectId, title, hasApiKey = false }: SubjectHeaderActionsProps) {
     const [isGenerating, startGenerating] = useTransition()
     const [isAdding, startAdding] = useTransition()
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -58,11 +60,15 @@ export function SubjectHeaderActions({ subjectId, title }: SubjectHeaderActionsP
                 variant="outline"
                 size="sm"
                 onClick={handleGenerate}
-                disabled={isGenerating}
-                className="gap-2 border-dashed border-blue-500/30 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                disabled={isGenerating || !hasApiKey}
+                title={!hasApiKey ? "API Key Required" : "Generate Topics"}
+                className={cn(
+                    "gap-2 border-dashed border-blue-500/30 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10",
+                    !hasApiKey && "opacity-50 cursor-not-allowed"
+                )}
             >
                 {isGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                {isGenerating ? 'Generating...' : 'AI Generate'}
+                {isGenerating ? 'Generating...' : !hasApiKey ? 'Key Required' : 'AI Generate'}
             </Button>
 
             {/* Link Button (Topic Dependency) */}

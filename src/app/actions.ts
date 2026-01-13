@@ -66,18 +66,16 @@ export async function deleteGeminiKey() {
 }
 
 async function getApiKeyInternal() {
-    // 1. Try DB
+    // 1. Try DB ONLY - Security: Do not allow loose cookies or env vars to bypass user settings
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
+
     if (user) {
         const { data } = await supabase.from('profiles').select('gemini_api_key').eq('id', user.id).single()
         if (data?.gemini_api_key) return data.gemini_api_key
     }
 
-    // 2. Try Cookie (Fallback)
-    const cookieStore = await cookies()
-    const cookieKey = cookieStore.get('gemini_api_key')?.value
-    return cookieKey || null
+    return null
 }
 
 // === SUBJECTS ===
@@ -327,7 +325,8 @@ export async function generateTopics(subjectId: string) {
 
     } catch (error: any) {
         console.error("AI Generation Error:", error)
-        throw new Error(error.message || "Failed to generate curriculum.")
+        const keySuffix = apiKey ? apiKey.slice(-4) : "NONE"
+        throw new Error(`${error.message || "Failed to generate curriculum."} (Key used: ...${keySuffix})`)
     }
 }
 
@@ -441,7 +440,8 @@ export async function generateContent(topicId: string) {
 
     } catch (error: any) {
         console.error("AI Content Generation Error:", error)
-        throw new Error(error.message || "Failed to generate content.")
+        const keySuffix = apiKey ? apiKey.slice(-4) : "NONE"
+        throw new Error(`${error.message || "Failed to generate content."} (Key used: ...${keySuffix})`)
     }
 }
 
@@ -634,11 +634,11 @@ export async function generateQuiz(topicId: string) {
 }
 
 export async function simplifyContent(text: string) {
-    const apiKey = process.env.GEMINI_API_KEY
-    if (!apiKey) throw new Error("Gemini API key not configured")
+    const apiKey = await getApiKeyInternal()
+    if (!apiKey) throw new Error("Gemini API key not configured. Please add it in Settings.")
 
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
 
     const prompt = `
         You are an expert teacher helping a student.
@@ -654,9 +654,9 @@ export async function simplifyContent(text: string) {
         const result = await model.generateContent(prompt)
         const response = await result.response
         return response.text()
-    } catch (e) {
+    } catch (e: any) {
         console.error("Simplify Error:", e)
-        return text // Fallback to original text
+        throw new Error(e.message || "Failed to simplify content.")
     }
 }
 

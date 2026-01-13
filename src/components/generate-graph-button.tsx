@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Sparkles, Loader2 } from 'lucide-react'
 import { generateTopics } from '@/app/actions'
 
-export function GenerateGraphButton({ subjectId }: { subjectId: string }) {
+import { cn } from '@/lib/utils'
+
+export function GenerateGraphButton({ subjectId, hasApiKey = false }: { subjectId: string, hasApiKey?: boolean }) {
     const [isPending, startTransition] = useTransition()
     const [error, setError] = useState('')
 
@@ -26,13 +28,21 @@ export function GenerateGraphButton({ subjectId }: { subjectId: string }) {
             <Button
                 size="lg"
                 onClick={handleGenerate}
-                disabled={isPending}
-                className="w-full sm:w-auto font-semibold shadow-lg shadow-blue-500/20 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white border-0"
+                disabled={isPending || !hasApiKey}
+                className={cn(
+                    "w-full sm:w-auto font-semibold shadow-lg shadow-blue-500/20 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white border-0",
+                    !hasApiKey && "opacity-50 grayscale cursor-not-allowed"
+                )}
             >
                 {isPending ? (
                     <>
                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                         Designing Curriculum...
+                    </>
+                ) : !hasApiKey ? (
+                    <>
+                        <Sparkles className="mr-2 h-5 w-5 fill-white/20" />
+                        Add API Key to Generate
                     </>
                 ) : (
                     <>

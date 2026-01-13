@@ -23,9 +23,10 @@ import remarkGfm from 'remark-gfm'
 interface TopicViewerProps {
     topic: any
     content: any
+    hasApiKey?: boolean
 }
 
-export function TopicViewer({ topic, content }: TopicViewerProps) {
+export function TopicViewer({ topic, content, hasApiKey = false }: TopicViewerProps) {
     const router = useRouter()
     const [isGenerating, startGeneration] = useTransition()
     const [isCompleting, startCompletion] = useTransition()
@@ -94,8 +95,11 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
                 <Button
                     size="lg"
                     onClick={handleGenerate}
-                    disabled={isGenerating}
-                    className="relative overflow-hidden bg-white text-black hover:bg-blue-50 transition-all px-8 py-6 rounded-full text-lg font-medium shadow-2xl hover:shadow-blue-500/50"
+                    disabled={isGenerating || !hasApiKey}
+                    className={cn(
+                        "relative overflow-hidden bg-white text-black hover:bg-blue-50 transition-all px-8 py-6 rounded-full text-lg font-medium shadow-2xl hover:shadow-blue-500/50",
+                        !hasApiKey && "opacity-50 grayscale cursor-not-allowed"
+                    )}
                 >
                     {isGenerating ? (
                         <>
@@ -105,7 +109,7 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
                     ) : (
                         <>
                             <Wand2 className="w-5 h-5 mr-3" />
-                            Generate Lesson
+                            {hasApiKey ? 'Generate Lesson' : 'Add API Key to Generate'}
                         </>
                     )}
                 </Button>
@@ -350,7 +354,12 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
                 <div className="flex items-center gap-3">
                     <Button
                         onClick={() => setIsQuizOpen(true)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white border-none"
+                        disabled={!hasApiKey}
+                        title={!hasApiKey ? "API Key Required" : "Take Quiz"}
+                        className={cn(
+                            "bg-blue-600 hover:bg-blue-700 text-white border-none",
+                            !hasApiKey && "opacity-50 cursor-not-allowed"
+                        )}
                     >
                         <Brain className="w-4 h-4 mr-2" />
                         Take Quiz
@@ -388,7 +397,7 @@ export function TopicViewer({ topic, content }: TopicViewerProps) {
                 topicTitle={topic.title}
             />
             {/* AI Tutor Chat */}
-            <ChatInterface topicId={topic.id} title={topic.title} />
+            <ChatInterface topicId={topic.id} title={topic.title} hasApiKey={hasApiKey} />
 
         </div >
     )

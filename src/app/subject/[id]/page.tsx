@@ -1,4 +1,4 @@
-import { getSubject, getSubjectTopics } from "@/app/actions"
+import { getSubject, getSubjectTopics, getProfile } from "@/app/actions"
 import { GraphVisualizer } from "@/components/graph-visualizer"
 import { GenerateGraphButton } from "@/components/generate-graph-button"
 import { ArrowLeft, Brain, Share2, AlertTriangle, Plus, Link as LinkIcon, Sparkles } from "lucide-react"
@@ -24,6 +24,10 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
     if (!user) {
         return redirect('/login')
     }
+
+    // Fetch profile to check API key status
+    const profile = await getProfile()
+    const hasApiKey = profile?.hasKey || false
 
     const { data: subject, error } = await getSubject(id)
 
@@ -84,11 +88,23 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
 
                     <div className="h-4 w-px bg-white/10" />
 
-                    <SubjectHeaderActions subjectId={subject.id} title={subject.title} />
+                    <SubjectHeaderActions subjectId={subject.id} title={subject.title} hasApiKey={hasApiKey} />
                 </div>
             </header>
 
             <main className="max-w-7xl mx-auto px-6 py-8">
+                {/* API Key Warning Banner */}
+                {!hasApiKey && (
+                    <div className="mb-8 p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl flex items-center gap-4 text-orange-200">
+                        <AlertTriangle className="h-5 w-5 text-orange-500 shrink-0" />
+                        <div className="flex-1">
+                            <p className="font-semibold text-sm">Action Required: Add API Key</p>
+                            <p className="text-xs text-orange-200/70">You need to configure your Gemini API key in settings to generate topics and content.</p>
+                        </div>
+                        {/* Settings trigger is handled globally or user goes to dashboard, but we can just inform here */}
+                    </div>
+                )}
+
                 <Tabs defaultValue="overview" className="space-y-8">
                     <TabsList className="bg-transparent border border-white/10 p-1 h-auto rounded-lg inline-flex gap-1">
                         <TabsTrigger value="overview" className="px-4 py-2 rounded-md data-[state=active]:bg-zinc-800 data-[state=active]:text-white text-zinc-400 hover:text-zinc-200 transition-colors">
@@ -133,7 +149,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
                                     <p className="text-muted-foreground mt-2 mb-8">
                                         This subject is empty. Use AI to generate a structured learning path.
                                     </p>
-                                    <GenerateGraphButton subjectId={id} />
+                                    <GenerateGraphButton subjectId={id} hasApiKey={hasApiKey} />
                                 </div>
                             </div>
                         ) : (

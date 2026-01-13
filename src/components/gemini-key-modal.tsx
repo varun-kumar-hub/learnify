@@ -33,7 +33,7 @@ export function GeminiKeyModal({ isOpen, onClose, hasKey }: { isOpen: boolean; o
                     <DialogDescription className="text-zinc-400">
                         {hasKey
                             ? "Your API key is currently saved. Enter a new one to update it."
-                            : "To generate personalized topics, we need your Google Gemini API Key. It is stored securely in your browser session."
+                            : "To generate personalized topics, we need your Google Gemini API Key. It is stored securely in your account profile."
                         }
                     </DialogDescription>
                 </DialogHeader>

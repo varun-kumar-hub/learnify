@@ -13,7 +13,7 @@ interface DefaultMessage {
     content: string
 }
 
-export function ChatInterface({ topicId, title }: { topicId: string; title: string }) {
+export function ChatInterface({ topicId, title, hasApiKey = false }: { topicId: string; title: string; hasApiKey?: boolean }) {
     const [messages, setMessages] = useState<DefaultMessage[]>([])
     const [input, setInput] = useState('')
     const [isLoading, setIsLoading] = useState(false)
@@ -131,10 +131,14 @@ export function ChatInterface({ topicId, title }: { topicId: string; title: stri
                     <Input
                         value={input}
                         onChange={e => setInput(e.target.value)}
-                        placeholder="Type a question..."
-                        className="bg-black/50 border-white/10 focus-visible:ring-blue-500"
+                        placeholder={hasApiKey ? "Type a question..." : "Add API Key in Settings to Chat"}
+                        disabled={isLoading || !hasApiKey}
+                        className={cn(
+                            "bg-black/50 border-white/10 focus-visible:ring-blue-500",
+                            !hasApiKey && "opacity-50 cursor-not-allowed placeholder:text-red-400/70"
+                        )}
                     />
-                    <Button type="submit" size="icon" disabled={isLoading || !input.trim()} className="shrink-0 bg-blue-600 hover:bg-blue-500">
+                    <Button type="submit" size="icon" disabled={isLoading || !input.trim() || !hasApiKey} className="shrink-0 bg-blue-600 hover:bg-blue-500">
                         <Send className="h-4 w-4" />
                     </Button>
                 </form>

@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server"
 import { redirect } from "next/navigation"
 import { TopicViewer } from "@/components/topic-viewer"
+import { getProfile } from "@/app/actions"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -23,6 +24,10 @@ export default async function LearnPage({ params }: { params: { id: string } }) 
         .eq('topic_id', id)
         .single()
 
+    // Fetch profile for API key check
+    const profile = await getProfile()
+    const hasApiKey = profile?.hasKey || false
+
     return (
         <div className="min-h-screen bg-black text-white selection:bg-blue-500/30">
             <header className="fixed top-0 w-full z-50 bg-black/50 backdrop-blur-xl border-b border-white/10">
@@ -37,7 +42,7 @@ export default async function LearnPage({ params }: { params: { id: string } }) 
             </header>
 
             <main className="pt-24 px-6">
-                <TopicViewer topic={topic} content={content?.content_json} />
+                <TopicViewer topic={topic} content={content?.content_json} hasApiKey={hasApiKey} />
             </main>
         </div>
     )
