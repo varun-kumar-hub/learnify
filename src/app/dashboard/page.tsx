@@ -101,10 +101,10 @@ export default async function DashboardPage() {
                             <div key={s.id} className="space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span className="font-medium text-white">{s.title}</span>
-                                    <span className="text-zinc-500">0%</span>
+                                    <span className="text-zinc-500">{s.progress}%</span>
                                 </div>
                                 <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
-                                    <div className="h-full bg-blue-600 w-[0%]" />
+                                    <div className="h-full bg-blue-600 transition-all duration-500 ease-out" style={{ width: `${s.progress}%` }} />
                                 </div>
                             </div>
                         ))}

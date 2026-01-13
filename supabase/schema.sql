@@ -57,6 +57,10 @@ create policy "Users can view own profile." on profiles for select using (auth.u
 create policy "Users can insert their own profile." on profiles for insert with check (auth.uid() = id);
 create policy "Users can update own profile." on profiles for update using (auth.uid() = id);
 
+-- Allow public read access to profiles (needed for Community features)
+drop policy if exists "Public profiles are viewable by everyone." on profiles;
+create policy "Public profiles are viewable by everyone." on profiles for select using (true);
+
 -- ==========================================
 -- LEARNIFY v1.0 SCHEMA
 -- ==========================================
@@ -80,8 +84,13 @@ end $$;
 
 create policy "Users can view own subjects" on subjects for select using (auth.uid() = user_id);
 create policy "Users can insert own subjects" on subjects for insert with check (auth.uid() = user_id);
-create policy "Users can update own subjects" on subjects for update using (auth.uid() = user_id);
 create policy "Users can delete own subjects" on subjects for delete using (auth.uid() = user_id);
+
+-- Make update policy idempotent
+do $$ begin
+  drop policy if exists "Users can update own subjects" on subjects;
+end $$;
+create policy "Users can update own subjects" on subjects for update using (auth.uid() = user_id);
 
 -- 2. TOPICS
 do $$ begin
@@ -258,6 +267,23 @@ BEGIN
     END IF;
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'subjects' AND column_name = 'clones') THEN
         ALTER TABLE subjects ADD COLUMN clones integer default 0;
+    END IF;
+
+    -- MIGRATION: Subject-Specific Activity
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'activity_logs' AND column_name = 'subject_id') THEN
+        ALTER TABLE activity_logs ADD COLUMN subject_id uuid references subjects(id) on delete cascade;
+        
+        -- Drop old constraint and add new one
+        ALTER TABLE activity_logs DROP CONSTRAINT IF EXISTS activity_logs_user_id_activity_date_key;
+        ALTER TABLE activity_logs ADD CONSTRAINT activity_logs_user_id_subject_date_key UNIQUE (user_id, subject_id, activity_date);
+    END IF;
+
+    -- FIX: Add Foreign Key for PostgREST to detect relation between Subjects and Profiles
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE constraint_name = 'subjects_user_id_fkey_profiles'
+    ) THEN
+        ALTER TABLE subjects ADD CONSTRAINT subjects_user_id_fkey_profiles FOREIGN KEY (user_id) REFERENCES profiles(id);
     END IF;
 END $$;
 

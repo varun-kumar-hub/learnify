@@ -5,12 +5,12 @@ import { getWeeklyActivity } from "@/app/actions"
 import { useEffect, useState } from "react"
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts"
 
-export function ActivityChart() {
+export function ActivityChart({ subjectId }: { subjectId?: string }) {
     const [data, setData] = useState<{ name: string, minutes: number }[]>([])
     const [totalMinutes, setTotalMinutes] = useState(0)
 
     useEffect(() => {
-        getWeeklyActivity().then(logs => {
+        getWeeklyActivity(subjectId).then(logs => {
             // Format data for chart: Ensure last 7 days exist even if 0
             const filledData = []
             for (let i = 6; i >= 0; i--) {
@@ -26,7 +26,7 @@ export function ActivityChart() {
             setData(filledData)
             setTotalMinutes(logs.reduce((acc: number, curr: { minutes_active: number }) => acc + curr.minutes_active, 0))
         })
-    }, [])
+    }, [subjectId])
 
     return (
         <Card className="bg-zinc-900/50 border-white/10 h-full min-h-[300px]">

@@ -103,7 +103,10 @@ export async function getSubjects() {
 
     const { data, error } = await supabase
         .from('subjects')
-        .select('*')
+        .select(`
+            *,
+            topics (status)
+        `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
@@ -112,7 +115,13 @@ export async function getSubjects() {
         return []
     }
 
-    return data
+    // Calculate progress
+    return data.map((subject: any) => {
+        const total = subject.topics.length
+        const completed = subject.topics.filter((t: any) => t.status === 'COMPLETED').length
+        const progress = total > 0 ? Math.round((completed / total) * 100) : 0
+        return { ...subject, progress }
+    })
 }
 
 export async function createSubject(formData: FormData) {
@@ -581,7 +590,13 @@ export async function completeTopic(topicId: string) {
     revalidatePath('/dashboard')
 
     // Log Activity (15 mins per topic completion)
-    await incrementActivity(15)
+    // We already have topic context from line ~591 if we moved it up, or we can fetch it.
+    // Actually completeTopic logic above used 'parents' but didn't fetch the *current* topic's subject_id explicitly early on.
+    // Let's fetch it or use what we have.
+    const { data: currentTopic } = await supabase.from('topics').select('subject_id').eq('id', topicId).single()
+    if (currentTopic) {
+        await incrementActivity(15, currentTopic.subject_id)
+    }
 }
 
 export async function chatWithTutor(topicId: string, messages: { role: string, content: string }[]) {
@@ -743,42 +758,86 @@ export async function getStreak() {
 }
 
 
-export async function incrementActivity(minutes: number) {
+export async function incrementActivity(minutes: number, subjectId?: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
     const today = new Date().toISOString().split('T')[0]
 
-    const { data: text } = await supabase
+    // Fetch existing log for this user/subject/date
+    // Note: If subjectId is undefined (global activity?), we might handle it differently.
+    // But for now, let's assume all activity *should* belong to a subject if possible.
+    // If subjectId is not provided, we might log it as 'null' subject (general).
+
+    let query = supabase
         .from('activity_logs')
         .select('minutes_active')
         .eq('user_id', user.id)
         .eq('activity_date', today)
-        .single()
+
+    if (subjectId) {
+        query = query.eq('subject_id', subjectId)
+    } else {
+        query = query.is('subject_id', null)
+    }
+
+    const { data: text } = await query.single()
 
     const current = text ? text.minutes_active : 0
 
     await supabase.from('activity_logs').upsert({
         user_id: user.id,
         activity_date: today,
+        subject_id: subjectId || null,
         minutes_active: current + minutes
     })
 }
 
-export async function getWeeklyActivity() {
+export async function getWeeklyActivity(subjectId?: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return []
 
-    const { data } = await supabase
+    let query = supabase
         .from('activity_logs')
         .select('activity_date, minutes_active')
         .eq('user_id', user.id)
         .order('activity_date', { ascending: true })
-        .limit(7)
+    // .limit(7) // Limit behaves weirdly with date ranges if gaps exist, but ok for now
 
-    return data || []
+    if (subjectId) {
+        query = query.eq('subject_id', subjectId)
+    }
+    // If no subjectId, we want ALL activity. 
+    // However, we have potentially multiple rows per date (different subjects).
+    // We need to aggregate them in JS because Supabase (PostgREST) aggregation is tricky without RPC.
+
+    const { data } = await query
+
+    if (!data) return []
+
+    // Aggregate by date
+    const activityMap = new Map<string, number>()
+
+    // Initialize last 7 days with 0 (optional, but good for charts)
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date()
+        d.setDate(d.getDate() - i)
+        const dateStr = d.toISOString().split('T')[0]
+        activityMap.set(dateStr, 0)
+    }
+
+    data.forEach((log: any) => {
+        const current = activityMap.get(log.activity_date) || 0
+        activityMap.set(log.activity_date, current + log.minutes_active)
+    })
+
+    // Convert back to array
+    return Array.from(activityMap.entries()).map(([date, minutes]) => ({
+        activity_date: date,
+        minutes_active: minutes
+    })).sort((a, b) => a.activity_date.localeCompare(b.activity_date))
 }
 
 export async function addTopic(subjectId: string, title: string) {
