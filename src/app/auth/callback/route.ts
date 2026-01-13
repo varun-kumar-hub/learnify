@@ -60,6 +60,10 @@ export async function GET(request: Request) {
                 redirectUrl = `${secureOrigin}${next}`;
             }
 
+            // DEBUG: Add a flag to see if callback succeeded
+            const separator = redirectUrl.includes('?') ? '&' : '?';
+            redirectUrl = `${redirectUrl}${separator}login_debug=true`;
+
             // Create the response object
             const response = NextResponse.redirect(redirectUrl);
 
@@ -69,7 +73,8 @@ export async function GET(request: Request) {
                     ...options,
                     sameSite: 'lax',
                     path: '/',
-                    secure: process.env.NODE_ENV === 'production',
+                    // Allow Supabase/Browser to decide secure status, or fallback to false to ensure it sticks
+                    secure: process.env.NODE_ENV === 'production' ? true : false,
                 });
             });
 
