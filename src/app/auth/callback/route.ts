@@ -48,21 +48,14 @@ export async function GET(request: Request) {
             let redirectUrl = `${origin}${next}`;
 
             if (isLocalEnv) {
-                console.log("Redirecting for Local Env");
                 redirectUrl = `${origin}${next}`;
             } else if (forwardedHost) {
-                console.log("Redirecting for Forwarded Host:", forwardedHost);
                 redirectUrl = `https://${forwardedHost}${next}`;
             } else {
-                console.log("Redirecting for Origin (Forced HTTPS):", origin);
                 // Force HTTPS in production if falling back to origin
                 const secureOrigin = origin.replace('http://', 'https://');
                 redirectUrl = `${secureOrigin}${next}`;
             }
-
-            // DEBUG: Add a flag to see if callback succeeded
-            const separator = redirectUrl.includes('?') ? '&' : '?';
-            redirectUrl = `${redirectUrl}${separator}login_debug=true`;
 
             // Create the response object
             const response = NextResponse.redirect(redirectUrl);

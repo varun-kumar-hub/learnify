@@ -59,14 +59,12 @@ const getURL = () => {
     url = url.includes('http') ? url : `https://${url}`
     // Remove trailing slash if present
     url = url.endsWith('/') ? url.slice(0, -1) : url
-    console.log("Debug: getURL() resolved to:", url);
     return url
 }
 
 export async function signInWithGithub() {
     const supabase = await createClient()
     const redirectUrl = `${getURL()}/auth/callback`;
-    console.log("Debug: Github Auth Redirect URL:", redirectUrl);
 
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
@@ -88,7 +86,6 @@ export async function signInWithGithub() {
 export async function signInWithGoogle() {
     const supabase = await createClient()
     const redirectUrl = `${getURL()}/auth/callback`;
-    console.log("Debug: Google Auth Redirect URL:", redirectUrl);
 
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
