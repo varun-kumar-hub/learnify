@@ -14,14 +14,17 @@ import { LandingHero } from "@/components/landing-hero";
 
 import { cookies } from "next/headers";
 
-export default async function Dashboard() {
-  const supabase = await createClient();
-  const cookieStore = await cookies();
-  const allCookies = cookieStore.getAll().map(c => c.name).join(', ');
-  console.log("Debug Dashboard: Cookies present:", allCookies);
+export default async function Dashboard({ searchParams }: { searchParams: Promise<{ code?: string }> }) {
+  const params = await searchParams;
 
-  const { data: { user }, error } = await supabase.auth.getUser();
-  console.log("Debug Dashboard: User found:", user?.id, "Error:", error?.message);
+  // Safety Net: If Supabase redirects to root with a code, forward to callback
+  if (params.code) {
+    return redirect(`/auth/callback?code=${params.code}`);
+  }
+
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
     return <LandingHero />;
