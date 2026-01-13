@@ -14,8 +14,9 @@ export function InstallPrompt() {
         if (isStandalone) return
 
         // 2. Check if user permanently dismissed it
-        const hasSeenPrompt = localStorage.getItem("learnify_install_prompt_dismissed")
-        if (hasSeenPrompt) return
+        // TEMPORARY DEBUG: Commented out to ensure user sees it
+        // const hasSeenPrompt = localStorage.getItem("learnify_install_prompt_dismissed")
+        // if (hasSeenPrompt) return
 
         // 3. Listen for the event
         const handler = (e: any) => {

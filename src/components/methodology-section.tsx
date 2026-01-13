@@ -31,7 +31,9 @@ export function MethodologySection() {
                                         src="/landing/methodology_goal.png"
                                         alt="Declare Intent"
                                         fill
+                                        sizes="(max-width: 768px) 100vw, 500px"
                                         className="object-cover hover:scale-105 transition-transform duration-700"
+                                        priority
                                     />
                                 </div>
                             </div>
@@ -55,6 +57,7 @@ export function MethodologySection() {
                                         src="/landing/methodology_graph.png"
                                         alt="Visual Synthesis"
                                         fill
+                                        sizes="(max-width: 768px) 100vw, 500px"
                                         className="object-cover hover:scale-105 transition-transform duration-700"
                                     />
                                 </div>
@@ -79,6 +82,7 @@ export function MethodologySection() {
                                         src="/landing/methodology_retention.png"
                                         alt="Permanent Storage"
                                         fill
+                                        sizes="(max-width: 768px) 100vw, 500px"
                                         className="object-cover hover:scale-105 transition-transform duration-700"
                                     />
                                 </div>
