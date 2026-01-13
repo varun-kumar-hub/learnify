@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Brain, Sparkles, Zap, Globe } from 'lucide-react'
 
-export function LandingHero() {
+export function LandingHero({ isLoggedIn }: { isLoggedIn?: boolean }) {
     return (
         <div className="min-h-screen bg-black text-white selection:bg-blue-500/30 overflow-hidden relative">
             {/* Background Effects */}
@@ -20,11 +20,19 @@ export function LandingHero() {
                         </div>
                         <span className="text-xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">Learnify</span>
                     </div>
-                    <Link href="/login">
-                        <Button variant="ghost" className="text-zinc-400 hover:text-white">
-                            Sign In
-                        </Button>
-                    </Link>
+                    {isLoggedIn ? (
+                        <Link href="/dashboard">
+                            <Button variant="ghost" className="text-zinc-400 hover:text-white">
+                                Dashboard
+                            </Button>
+                        </Link>
+                    ) : (
+                        <Link href="/login">
+                            <Button variant="ghost" className="text-zinc-400 hover:text-white">
+                                Sign In
+                            </Button>
+                        </Link>
+                    )}
                 </div>
             </nav>
 
@@ -44,12 +52,21 @@ export function LandingHero() {
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center gap-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
-                    <Link href="/login">
-                        <Button size="lg" className="h-14 px-8 text-lg bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg shadow-blue-900/20 transition-all hover:scale-105">
-                            Get Started for Free
-                            <Zap className="ml-2 w-5 h-5" />
-                        </Button>
-                    </Link>
+                    {isLoggedIn ? (
+                        <Link href="/dashboard">
+                            <Button size="lg" className="h-14 px-8 text-lg bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg shadow-blue-900/20 transition-all hover:scale-105">
+                                Open Dashboard
+                                <Brain className="ml-2 w-5 h-5" />
+                            </Button>
+                        </Link>
+                    ) : (
+                        <Link href="/login">
+                            <Button size="lg" className="h-14 px-8 text-lg bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg shadow-blue-900/20 transition-all hover:scale-105">
+                                Get Started for Free
+                                <Zap className="ml-2 w-5 h-5" />
+                            </Button>
+                        </Link>
+                    )}
                     <Link href="/login">
                         <Button variant="outline" size="lg" className="h-14 px-8 text-lg border-white/10 text-zinc-300 hover:bg-white/5 hover:text-white rounded-full">
                             View Demo

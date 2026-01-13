@@ -10,7 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export default function ProfilePage() {
     const [name, setName] = useState('')
-    const [role, setRole] = useState('student') // Mock role
+    const [occupation, setOccupation] = useState('')
+    const [educationLevel, setEducationLevel] = useState('undergrad')
+    const [learningStyle, setLearningStyle] = useState('visual')
+    const [learningSchedule, setLearningSchedule] = useState('few')
     const [isPending, startTransition] = useTransition()
 
     // Load initial data
@@ -18,13 +21,23 @@ export default function ProfilePage() {
         getProfile().then(p => {
             if (p) {
                 setName(p.full_name)
+                setOccupation(p.occupation || '')
+                setEducationLevel(p.education_level || 'undergrad')
+                setLearningStyle(p.learning_style || 'visual')
+                setLearningSchedule(p.learning_schedule || 'few')
             }
         })
     }, [])
 
     function handleSave() {
         startTransition(async () => {
-            await updateProfile({ full_name: name })
+            await updateProfile({
+                full_name: name,
+                occupation,
+                education_level: educationLevel,
+                learning_style: learningStyle,
+                learning_schedule: learningSchedule
+            })
         })
     }
 
@@ -65,7 +78,8 @@ export default function ProfilePage() {
                                 <Input
                                     placeholder="Student, Professional, etc."
                                     className="bg-zinc-950 border-zinc-800 h-12"
-                                    defaultValue="Student"
+                                    value={occupation}
+                                    onChange={(e) => setOccupation(e.target.value)}
                                 />
                             </div>
                         </div>
@@ -83,7 +97,7 @@ export default function ProfilePage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <Label>Education Level</Label>
-                                <Select defaultValue="undergrad">
+                                <Select value={educationLevel} onValueChange={setEducationLevel}>
                                     <SelectTrigger className="bg-zinc-950 border-zinc-800 h-12">
                                         <SelectValue placeholder="Select level" />
                                     </SelectTrigger>
@@ -97,7 +111,7 @@ export default function ProfilePage() {
                             </div>
                             <div className="space-y-2">
                                 <Label>Preferred Learning Style</Label>
-                                <Select defaultValue="visual">
+                                <Select value={learningStyle} onValueChange={setLearningStyle}>
                                     <SelectTrigger className="bg-zinc-950 border-zinc-800 h-12">
                                         <SelectValue placeholder="Select style" />
                                     </SelectTrigger>
@@ -112,7 +126,7 @@ export default function ProfilePage() {
 
                         <div className="space-y-2">
                             <Label>Typical Learning Schedule</Label>
-                            <Select defaultValue="few">
+                            <Select value={learningSchedule} onValueChange={setLearningSchedule}>
                                 <SelectTrigger className="bg-zinc-950 border-zinc-800 h-12">
                                     <SelectValue placeholder="Select schedule" />
                                 </SelectTrigger>

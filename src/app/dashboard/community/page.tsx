@@ -1,7 +1,47 @@
+'use client'
+
+import { useState, useTransition, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
-import { Users } from 'lucide-react'
+import { Users, Copy, Loader2, BookOpen } from 'lucide-react'
+import { getCommunitySubjects, cloneSubject } from '@/app/actions'
+import { useRouter } from 'next/navigation'
 
 export default function CommunityPage() {
+    const [subjects, setSubjects] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
+    const [cloningId, setCloningId] = useState<string | null>(null)
+    const [isPending, startTransition] = useTransition()
+    const router = useRouter()
+
+    useEffect(() => {
+        getCommunitySubjects().then(data => {
+            setSubjects(data || [])
+            setLoading(false)
+        })
+    }, [])
+
+    function handleClone(id: string) {
+        if (cloningId) return
+        setCloningId(id)
+        startTransition(async () => {
+            try {
+                await cloneSubject(id)
+                router.push('/dashboard')
+            } catch (e) {
+                console.error("Failed to clone", e)
+                setCloningId(null)
+            }
+        })
+    }
+
+    if (loading) {
+        return (
+            <div className="flex h-[50vh] items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-zinc-500" />
+            </div>
+        )
+    }
+
     return (
         <div className="max-w-7xl mx-auto px-6 py-10 space-y-8">
             <div className="flex items-end justify-between">
@@ -21,46 +61,61 @@ export default function CommunityPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Mock Community Items */}
-                {[
-                    { title: "matter in our surroundings", author: "Pullpaka Sanjana", clones: 19 },
-                    { title: "Predictive Analytics", author: "G. Santhosh Reddy", clones: 46 },
-                    { title: "Biology for Engineering", author: "G. Santhosh Reddy", clones: 20 },
-                    { title: "Database Management System", author: "G. Santhosh Reddy", clones: 21 },
-                    { title: "Microsoft Excel", author: "G. Santhosh Reddy", clones: 18 },
-                    { title: "Copy of UI/UX Design Principles", author: "Leo", clones: 14 }
-                ].map((item, i) => (
-                    <div key={i} className="group p-6 rounded-2xl bg-zinc-900/40 border border-white/5 hover:border-blue-500/30 transition-all hover:bg-zinc-900/60">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-bold text-white group-hover:text-blue-400 transition-colors">{item.title}</h3>
-                            <span className="text-[10px] uppercase font-bold text-green-400 bg-green-950/30 px-2 py-0.5 rounded-full">Public</span>
-                        </div>
-                        <p className="text-zinc-500 text-sm mb-6 line-clamp-2">No description provided.</p>
-
-                        <div className="flex items-center justify-between mt-auto">
-                            <div className="flex items-center gap-2">
-                                <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold">
-                                    {item.author[0]}
-                                </div>
-                                <span className="text-xs text-zinc-400">{item.author}</span>
+            {subjects.length === 0 ? (
+                <div className="text-center py-20 border border-dashed border-zinc-800 rounded-3xl bg-zinc-900/20">
+                    <Users className="mx-auto h-12 w-12 text-zinc-600 mb-4 opacity-50" />
+                    <h3 className="text-xl font-bold text-zinc-400">No public subjects yet</h3>
+                    <p className="text-zinc-500 mt-2">Share your first subject to get started!</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {subjects.map((subject) => (
+                        <div key={subject.id} className="group p-6 rounded-2xl bg-zinc-900/40 border border-white/5 hover:border-blue-500/30 transition-all hover:bg-zinc-900/60 flex flex-col h-full">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-bold text-white group-hover:text-blue-400 transition-colors truncate pr-2" title={subject.title}>
+                                    {subject.title}
+                                </h3>
+                                <span className="text-[10px] uppercase font-bold text-green-400 bg-green-950/30 px-2 py-0.5 rounded-full shrink-0">Public</span>
                             </div>
+                            <p className="text-zinc-500 text-sm mb-6 line-clamp-2 h-10">
+                                {subject.description || "No description provided."}
+                            </p>
 
-                            <Button variant="ghost" size="sm" className="gap-2 text-zinc-400 hover:text-white">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-copy"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
-                                Clone
-                            </Button>
-                        </div>
+                            <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/5">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white">
+                                        {subject.profiles?.full_name?.[0] || 'U'}
+                                    </div>
+                                    <span className="text-xs text-zinc-400 truncate max-w-[100px]" title={subject.profiles?.full_name}>
+                                        {subject.profiles?.full_name || 'Anonymous'}
+                                    </span>
+                                </div>
 
-                        <div className="mt-4 pt-4 border-t border-white/5 flex items-center text-xs text-zinc-500 gap-4">
-                            <span className="flex items-center gap-1">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /></svg>
-                                {item.clones}
-                            </span>
+                                <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-1 text-xs text-zinc-500">
+                                        <Copy className="h-3 w-3" />
+                                        {subject.clones || 0}
+                                    </div>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="gap-2 text-zinc-400 hover:text-white hover:bg-blue-600/20"
+                                        onClick={() => handleClone(subject.id)}
+                                        disabled={!!cloningId}
+                                    >
+                                        {cloningId === subject.id ? (
+                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                        ) : (
+                                            <Copy className="h-3 w-3" />
+                                        )}
+                                        {cloningId === subject.id ? 'Cloning...' : 'Clone'}
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            )}
         </div>
     )
 }

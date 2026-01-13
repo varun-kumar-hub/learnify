@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { logout } from '@/app/actions'
 
 const navigation = [
+    { name: 'Home', href: '/', icon: Home },
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Community', href: '/dashboard/community', icon: Users },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
@@ -69,17 +70,7 @@ export function AppSidebar() {
 
             {/* Footer Actions */}
             <div className="w-full px-3 mt-auto space-y-2">
-                <Link href="/">
-                    <Button
-                        variant="ghost"
-                        className="w-full flex items-center justify-start h-12 px-3 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5"
-                    >
-                        <Home className="h-6 w-6 min-w-[1.5rem]" />
-                        <span className="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                            Home
-                        </span>
-                    </Button>
-                </Link>
+
 
                 <form action={logout}>
                     <Button

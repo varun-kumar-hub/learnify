@@ -21,7 +21,7 @@ export async function getProfile() {
 
     const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, gemini_api_key')
+        .select('full_name, gemini_api_key, occupation, education_level, learning_style, learning_schedule')
         .eq('id', user.id)
         .single()
 
@@ -30,11 +30,22 @@ export async function getProfile() {
 
     return {
         full_name: profile.full_name || user.user_metadata?.full_name || user.email,
-        hasKey: !!profile.gemini_api_key
+        hasKey: !!profile.gemini_api_key,
+        occupation: profile.occupation,
+        education_level: profile.education_level,
+        learning_style: profile.learning_style,
+        learning_schedule: profile.learning_schedule
     }
 }
 
-export async function updateProfile(data: { full_name?: string; gemini_api_key?: string }) {
+export async function updateProfile(data: {
+    full_name?: string;
+    gemini_api_key?: string;
+    occupation?: string;
+    education_level?: string;
+    learning_style?: string;
+    learning_schedule?: string;
+}) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Not authenticated')
@@ -42,13 +53,17 @@ export async function updateProfile(data: { full_name?: string; gemini_api_key?:
     const updates: any = { updated_at: new Date().toISOString() }
     if (data.full_name !== undefined) updates.full_name = data.full_name
     if (data.gemini_api_key !== undefined) updates.gemini_api_key = data.gemini_api_key
+    if (data.occupation !== undefined) updates.occupation = data.occupation
+    if (data.education_level !== undefined) updates.education_level = data.education_level
+    if (data.learning_style !== undefined) updates.learning_style = data.learning_style
+    if (data.learning_schedule !== undefined) updates.learning_schedule = data.learning_schedule
 
     const { error } = await supabase
         .from('profiles')
         .upsert({ id: user.id, ...updates })
 
     if (error) throw error
-    revalidatePath('/')
+    revalidatePath('/dashboard')
 }
 
 export async function deleteGeminiKey() {
@@ -62,7 +77,7 @@ export async function deleteGeminiKey() {
     const cookieStore = await cookies()
     cookieStore.delete('gemini_api_key')
 
-    revalidatePath('/')
+    revalidatePath('/dashboard')
 }
 
 async function getApiKeyInternal() {
@@ -124,7 +139,7 @@ export async function createSubject(formData: FormData) {
         throw new Error('Failed to create subject')
     }
 
-    revalidatePath('/')
+    revalidatePath('/dashboard')
 }
 
 export async function deleteSubject(id: string) {
@@ -140,7 +155,7 @@ export async function deleteSubject(id: string) {
         throw new Error('Failed to delete subject')
     }
 
-    revalidatePath('/')
+    revalidatePath('/dashboard')
 }
 
 export async function getSubject(id: string) {
@@ -154,7 +169,7 @@ export async function getSubject(id: string) {
     // DEBUG: First try to find the subject IGNORING user_id to see if it exists at all
     const { data: globalSubject, error: globalError } = await supabase
         .from('subjects')
-        .select('id, user_id, title')
+        .select('id, user_id, title, is_public')
         .eq('id', id)
         .single()
 
@@ -169,6 +184,24 @@ export async function getSubject(id: string) {
 
     // If we get here, it exists and we own it. Fetch full data.
     return { data: globalSubject, error: null }
+}
+
+export async function toggleSubjectVisibility(id: string, isPublic: boolean) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+
+    const { error } = await supabase
+        .from('subjects')
+        .update({ is_public: isPublic })
+        .eq('id', id)
+        .eq('user_id', user.id) // Ensure ownership
+
+    if (error) throw new Error('Failed to update visibility')
+
+    revalidatePath('/dashboard')
+    revalidatePath('/dashboard/community')
+    revalidatePath(`/dashboard/subject/${id}`)
 }
 
 export async function getSubjectTopics(subjectId: string) {
@@ -321,7 +354,7 @@ export async function generateTopics(subjectId: string) {
             }
         }
 
-        revalidatePath(`/subject/${subjectId}`)
+        revalidatePath(`/dashboard/subject/${subjectId}`)
 
     } catch (error: any) {
         console.error("AI Generation Error:", error)
@@ -435,7 +468,7 @@ export async function generateContent(topicId: string) {
             await supabase.from('flashcards').insert(flashcardsToInsert)
         }
 
-        revalidatePath(`/learn/${topicId}`)
+        revalidatePath(`/dashboard/learn/${topicId}`)
         return content
 
     } catch (error: any) {
@@ -521,7 +554,10 @@ export async function completeTopic(topicId: string) {
         }
     }
 
-    revalidatePath('/')
+    revalidatePath('/dashboard')
+
+    // Log Activity (15 mins per topic completion)
+    await incrementActivity(15)
 }
 
 export async function chatWithTutor(topicId: string, messages: { role: string, content: string }[]) {
@@ -819,4 +855,113 @@ export async function getResumeTopic() {
 
     if (error || !data) return null
     return data
+}
+// === COMMUNITY FEATURES ===
+
+export async function getCommunitySubjects() {
+    const supabase = await createClient()
+
+    // Join with profiles to get author name
+    const { data, error } = await supabase
+        .from('subjects')
+        .select('*, profiles(full_name)')
+        .eq('is_public', true)
+        .order('clones', { ascending: false })
+
+    if (error) {
+        console.error('Error fetching community subjects:', error)
+        return []
+    }
+
+    return data
+}
+
+export async function cloneSubject(subjectId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+
+    // 1. Fetch Original Subject
+    const { data: originalSubject, error: subjectError } = await supabase
+        .from('subjects')
+        .select('*')
+        .eq('id', subjectId)
+        .single()
+
+    if (subjectError || !originalSubject) throw new Error('Subject not found')
+
+    // 2. Create New Subject for User
+    const { data: newSubject, error: createError } = await supabase
+        .from('subjects')
+        .insert({
+            user_id: user.id,
+            title: `Copy of ${originalSubject.title}`,
+            description: originalSubject.description
+        })
+        .select()
+        .single()
+
+    if (createError) throw new Error('Failed to create subject copy')
+
+    // 3. Increment Clone Count
+    await supabase.from('subjects').update({ clones: (originalSubject.clones || 0) + 1 }).eq('id', subjectId)
+
+    // 4. Copy Topics (Simplified: No recursion for deep structure yet, just topics + content)
+    // Fetch original topics
+    const { data: originalTopics } = await supabase.from('topics').select('*').eq('subject_id', subjectId)
+
+    if (originalTopics && originalTopics.length > 0) {
+        // Map old ID to new ID for dependencies
+        const idMap = new Map<string, string>()
+
+        for (const topic of originalTopics) {
+            const { data: newTopic } = await supabase
+                .from('topics')
+                .insert({
+                    subject_id: newSubject.id,
+                    title: topic.title,
+                    description: topic.description,
+                    level: topic.level,
+                    status: topic.status, // or reset to LOCKED? keeping status for now
+                    x: topic.x,
+                    y: topic.y,
+                    order_index: topic.order_index
+                })
+                .select()
+                .single()
+
+            if (newTopic) {
+                idMap.set(topic.id, newTopic.id)
+
+                // Copy Content
+                const { data: content } = await supabase.from('topic_content').select('*').eq('topic_id', topic.id).single()
+                if (content) {
+                    await supabase.from('topic_content').insert({
+                        topic_id: newTopic.id,
+                        content_json: content.content_json
+                    })
+                }
+            }
+        }
+
+        // Copy Dependencies
+        const { data: originalDeps } = await supabase
+            .from('topic_dependencies')
+            .select('*')
+            .in('parent_topic_id', originalTopics.map(t => t.id))
+
+        if (originalDeps) {
+            const newDeps = originalDeps.map(d => ({
+                parent_topic_id: idMap.get(d.parent_topic_id),
+                child_topic_id: idMap.get(d.child_topic_id)
+            })).filter(d => d.parent_topic_id && d.child_topic_id)
+
+            if (newDeps.length > 0) {
+                await supabase.from('topic_dependencies').insert(newDeps)
+            }
+        }
+    }
+
+    revalidatePath('/dashboard')
+    revalidatePath('/dashboard/community')
 }

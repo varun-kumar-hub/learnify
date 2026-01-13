@@ -11,9 +11,9 @@ import { StatsCards } from "@/components/stats-cards"
 import { TopicCard } from "@/components/topic-card"
 
 import { UpNextList } from "@/components/up-next-list"
-import { ActivityChart } from "@/components/activity-chart"
 import { Switch } from "@/components/ui/switch"
 import { SubjectHeaderActions } from "@/components/subject-header-actions"
+import { Globe, Lock } from "lucide-react"
 
 // Next.js 15+ convention: params is a promise
 export default async function SubjectPage({ params }: { params: Promise<{ id: string }> }) {
@@ -67,7 +67,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
             <header className="border-b border-white/10 bg-black/50 backdrop-blur-xl sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <Link href="/" className="p-2 hover:bg-white/5 rounded-full transition-colors">
+                        <Link href="/dashboard" className="p-2 hover:bg-white/5 rounded-full transition-colors">
                             <ArrowLeft className="h-5 w-5 text-muted-foreground" />
                         </Link>
                         <div>
@@ -81,9 +81,18 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <span className="text-xs font-medium text-zinc-400">Private</span>
-                        <Switch className="scale-75 data-[state=checked]:bg-blue-600" />
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/10">
+                        {subject.is_public ? (
+                            <>
+                                <Globe className="h-3.5 w-3.5 text-blue-400" />
+                                <span className="text-xs font-medium text-blue-200">Public</span>
+                            </>
+                        ) : (
+                            <>
+                                <Lock className="h-3.5 w-3.5 text-zinc-400" />
+                                <span className="text-xs font-medium text-zinc-400">Private</span>
+                            </>
+                        )}
                     </div>
 
                     <div className="h-4 w-px bg-white/10" />

@@ -48,7 +48,7 @@ export function UpNextList({ topics }: UpNextListProps) {
                             <h4 className="font-bold text-sm">{topic.data.label}</h4>
                             <p className="text-xs text-zinc-500">{topic.data.level || 'General'}</p>
                         </div>
-                        <Link href={`/learn/${topic.id}`}>
+                        <Link href={`/dashboard/learn/${topic.id}`}>
                             <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full text-zinc-400 hover:text-white hover:bg-white/10">
                                 <Play className="h-4 w-4" />
                             </Button>

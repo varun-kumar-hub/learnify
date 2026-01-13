@@ -27,7 +27,7 @@ export function TopicCard({ id, title, status, level }: TopicCardProps) {
 
     return (
         <Link
-            href={isLocked ? '#' : `/learn/${id}`}
+            href={isLocked ? '#' : `/dashboard/learn/${id}`}
             className={cn(
                 "group relative flex flex-col justify-between p-5 rounded-xl border transition-all duration-300",
                 config.bg,

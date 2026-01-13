@@ -82,7 +82,7 @@ export function GraphVisualizer({ initialNodes, initialEdges }: GraphProps) {
 
     const onNodeClick = useCallback((event: React.MouseEvent, node: any) => {
         if (node.data.status === 'LOCKED') return // Optional: prevent clicking locked nodes
-        window.location.href = `/learn/${node.id}` // Using window.location for hard nav or router.push
+        window.location.href = `/dashboard/learn/${node.id}` // Using window.location for hard nav or router.push
     }, [])
 
     return (

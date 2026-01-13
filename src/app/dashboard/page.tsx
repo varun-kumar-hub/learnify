@@ -45,7 +45,7 @@ export default async function DashboardPage() {
                         <h2 className="text-2xl font-bold text-white">{resumeTopic.title}</h2>
                         <p className="text-zinc-400">In {resumeTopic.subjects.title}</p>
                     </div>
-                    <Link href={`/learn/${resumeTopic.id}`}>
+                    <Link href={`/dashboard/learn/${resumeTopic.id}`}>
                         <Button size="lg" className="bg-blue-600 hover:bg-blue-500 text-white rounded-full px-8 shadow-lg shadow-blue-900/20">
                             Resume Lesson
                         </Button>
@@ -76,6 +76,7 @@ export default async function DashboardPage() {
                             title={subject.title}
                             description={subject.description}
                             createdAt={subject.created_at}
+                            isPublic={subject.is_public}
                         />
                     ))}
                 </div>

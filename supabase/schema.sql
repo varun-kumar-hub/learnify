@@ -230,4 +230,26 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'last_active_date') THEN
         ALTER TABLE profiles ADD COLUMN last_active_date date;
     END IF;
+
+    -- MIGRATION: Add Extended Profile Fields
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'occupation') THEN
+        ALTER TABLE profiles ADD COLUMN occupation text;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'education_level') THEN
+        ALTER TABLE profiles ADD COLUMN education_level text;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'learning_style') THEN
+        ALTER TABLE profiles ADD COLUMN learning_style text;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'learning_schedule') THEN
+        ALTER TABLE profiles ADD COLUMN learning_schedule text;
+    END IF;
+
+    -- MIGRATION: Community Features
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'subjects' AND column_name = 'is_public') THEN
+        ALTER TABLE subjects ADD COLUMN is_public boolean default false;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'subjects' AND column_name = 'clones') THEN
+        ALTER TABLE subjects ADD COLUMN clones integer default 0;
+    END IF;
 END $$;
