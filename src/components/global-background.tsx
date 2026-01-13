@@ -35,9 +35,10 @@ export function GlobalBackground() {
                 }}
             />
 
-            {/* Layer 4: Static Highlights */}
-            <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[400px] w-[80vw] max-w-[1000px] rounded-full bg-[var(--primary)] opacity-10 blur-[100px] dark:opacity-20 dark:blur-[120px] transition-all duration-700" />
-            <div className="absolute right-0 bottom-0 -z-10 h-[300px] w-[300px] rounded-full bg-purple-500/20 blur-[120px] opacity-20 dark:opacity-10 transition-all duration-700" />
+            {/* Layer 4: Static Highlights (Enhanced) */}
+            <div className="absolute left-[10%] top-[10%] -z-10 h-[500px] w-[500px] rounded-full bg-blue-600/30 blur-[120px] dark:bg-blue-500/20 animate-pulse transition-all duration-1000" />
+            <div className="absolute right-[10%] bottom-[20%] -z-10 h-[400px] w-[400px] rounded-full bg-purple-600/30 blur-[100px] dark:bg-purple-500/20 animate-pulse delay-1000 transition-all duration-1000" />
+            <div className="absolute left-[20%] bottom-[10%] -z-10 h-[300px] w-[300px] rounded-full bg-emerald-500/30 blur-[100px] dark:bg-emerald-400/15 animate-pulse delay-700 transition-all duration-1000" />
         </div>
     )
 }

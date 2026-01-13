@@ -1,5 +1,4 @@
 import { AppSidebar } from "@/components/app-sidebar"
-import { SpotlightBg } from "@/components/ui/spotlight-bg"
 
 export default function DashboardLayout({
     children,
@@ -7,9 +6,7 @@ export default function DashboardLayout({
     children: React.ReactNode
 }) {
     return (
-        <div className="flex min-h-screen bg-black text-white relative">
-            <SpotlightBg />
-
+        <div className="flex min-h-screen relative">
             <AppSidebar />
 
             <main className="flex-1 relative z-10 overflow-y-auto h-screen">
