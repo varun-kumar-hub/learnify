@@ -80,6 +80,7 @@ end $$;
 
 create policy "Users can view own subjects" on subjects for select using (auth.uid() = user_id);
 create policy "Users can insert own subjects" on subjects for insert with check (auth.uid() = user_id);
+create policy "Users can update own subjects" on subjects for update using (auth.uid() = user_id);
 create policy "Users can delete own subjects" on subjects for delete using (auth.uid() = user_id);
 
 -- 2. TOPICS

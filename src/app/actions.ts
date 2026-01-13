@@ -805,7 +805,7 @@ export async function addTopic(subjectId: string, title: string) {
         })
 
     if (error) throw error
-    revalidatePath(`/subject/${subjectId}`)
+    revalidatePath(`/dashboard/subject/${subjectId}`)
 }
 // Link Topics Feature
 export async function getTopicsSimple(subjectId: string) {
@@ -853,7 +853,7 @@ export async function linkTopics(parentTopicId: string, childTopicId: string) {
     // Ideally fetch subjectId.
     const { data: topic } = await supabase.from('topics').select('subject_id').eq('id', parentTopicId).single()
     if (topic) {
-        revalidatePath(`/subject/${topic.subject_id}`)
+        revalidatePath(`/dashboard/subject/${topic.subject_id}`)
     }
 }
 

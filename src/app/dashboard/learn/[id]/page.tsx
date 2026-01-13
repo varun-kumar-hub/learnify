@@ -32,7 +32,7 @@ export default async function LearnPage({ params }: { params: { id: string } }) 
         <div className="min-h-screen bg-black text-white selection:bg-blue-500/30">
             <header className="fixed top-0 w-full z-50 bg-black/50 backdrop-blur-xl border-b border-white/10">
                 <div className="max-w-4xl mx-auto px-6 h-16 flex items-center gap-4">
-                    <Link href={`/subject/${topic.subject_id}`}>
+                    <Link href={`/dashboard/subject/${topic.subject_id}`}>
                         <Button variant="ghost" className="text-zinc-400 hover:text-white pl-0 gap-2">
                             <ArrowLeft className="h-4 w-4" />
                             <span className="font-semibold text-sm uppercase tracking-widest">Go Back</span>

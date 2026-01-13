@@ -17,7 +17,10 @@ interface SubjectHeaderActionsProps {
     isOwner: boolean
 }
 
+import { useRouter } from 'next/navigation'
+
 export function SubjectHeaderActions({ subjectId, title, hasApiKey = false, isOwner }: SubjectHeaderActionsProps) {
+    const router = useRouter()
     const [isGenerating, startGenerating] = useTransition()
     const [isAdding, startAdding] = useTransition()
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -32,7 +35,7 @@ export function SubjectHeaderActions({ subjectId, title, hasApiKey = false, isOw
                 console.log("Starting generation...")
                 await generateTopics(subjectId)
                 console.log("Generation complete")
-                window.location.reload() // Force reload to show new topics
+                router.refresh() // Force reload to show new topics
             } catch (error: any) {
                 console.error("Failed to generate:", error)
                 alert(`Failed to generate topics: ${error.message || "Unknown error"}`)
