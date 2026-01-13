@@ -77,42 +77,90 @@ export function TopicViewer({ topic, content, hasApiKey = false }: TopicViewerPr
     // If content is missing, show generation prompt
     if (!content) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[50vh] text-center space-y-6 animate-in fade-in zoom-in duration-500">
-                <div className="p-6 rounded-full bg-zinc-900 border border-zinc-800 shadow-2xl relative group">
-                    <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full group-hover:bg-blue-500/30 transition-all opacity-0 group-hover:opacity-100" />
-                    <Sparkles className="w-12 h-12 text-blue-400 relative z-10" />
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-8 animate-in fade-in zoom-in duration-700">
+
+                {/* Background Decoration */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-500/10 blur-[100px] rounded-full" />
                 </div>
 
-                <div className="max-w-md space-y-2">
-                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-br from-white to-zinc-500">
-                        {topic.title}
-                    </h1>
-                    <p className="text-zinc-400">
-                        This topic is ready to be explored. Generate the interactive lesson to begin your journey.
-                    </p>
-                </div>
+                <div className="relative z-10 max-w-2xl mx-auto space-y-8 p-8 md:p-12 rounded-3xl bg-zinc-900/50 backdrop-blur-2xl border border-white/10 shadow-2xl">
 
-                <Button
-                    size="lg"
-                    onClick={handleGenerate}
-                    disabled={isGenerating || !hasApiKey}
-                    className={cn(
-                        "relative overflow-hidden bg-white text-black hover:bg-blue-50 transition-all px-8 py-6 rounded-full text-lg font-medium shadow-2xl hover:shadow-blue-500/50",
-                        !hasApiKey && "opacity-50 grayscale cursor-not-allowed"
-                    )}
-                >
-                    {isGenerating ? (
-                        <>
-                            <Loader2 className="w-5 h-5 animate-spin mr-3" />
-                            Crafting Lesson...
-                        </>
-                    ) : (
-                        <>
-                            <Wand2 className="w-5 h-5 mr-3" />
-                            {hasApiKey ? 'Generate Lesson' : 'Add API Key to Generate'}
-                        </>
-                    )}
-                </Button>
+                    {/* Header */}
+                    <div className="space-y-4">
+                        <div className="inline-flex p-4 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 shadow-inner border border-white/5 mb-4">
+                            <Sparkles className="w-10 h-10 text-blue-400" />
+                        </div>
+                        <h1 className="text-4xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-br from-white via-white to-zinc-400">
+                            {topic.title}
+                        </h1>
+                        <p className="text-lg text-zinc-400 max-w-lg mx-auto leading-relaxed">
+                            Unlock a complete, AI-generated mastery guide for this topic.
+                        </p>
+                    </div>
+
+                    {/* Features Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+                        <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
+                                <Share2 className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <div className="font-bold text-white text-sm">Knowledge Graph</div>
+                                <div className="text-xs text-zinc-500">Visual connections</div>
+                            </div>
+                        </div>
+                        <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400">
+                                <Brain className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <div className="font-bold text-white text-sm">Smart Flashcards</div>
+                                <div className="text-xs text-zinc-500">Active recall</div>
+                            </div>
+                        </div>
+                        <div className="p-4 rounded-xl bg-white/5 border border-white/10 flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400">
+                                <CheckCircle2 className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <div className="font-bold text-white text-sm">AI Assessment</div>
+                                <div className="text-xs text-zinc-500">Test mastery</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Action */}
+                    <div className="pt-4">
+                        <Button
+                            size="lg"
+                            onClick={handleGenerate}
+                            disabled={isGenerating || !hasApiKey}
+                            className={cn(
+                                "relative w-full md:w-auto min-w-[240px] h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white transition-all rounded-xl text-lg font-bold shadow-xl shadow-blue-900/20 border border-white/10",
+                                !hasApiKey && "opacity-50 grayscale cursor-not-allowed",
+                                isGenerating && "brightness-110"
+                            )}
+                        >
+                            {isGenerating ? (
+                                <>
+                                    <Loader2 className="w-5 h-5 animate-spin mr-3" />
+                                    Crafting Your Lesson...
+                                </>
+                            ) : (
+                                <>
+                                    <Wand2 className="w-5 h-5 mr-3" />
+                                    {hasApiKey ? 'Generate Full Lesson' : 'Add API Key to Start'}
+                                </>
+                            )}
+                        </Button>
+                        {!hasApiKey && (
+                            <p className="mt-4 text-sm text-red-400">
+                                * An API Key is required to generate new content.
+                            </p>
+                        )}
+                    </div>
+                </div>
             </div>
         )
     }
