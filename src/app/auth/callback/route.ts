@@ -9,9 +9,11 @@ export async function GET(request: Request) {
     if (code) {
         const supabase = await createClient();
         const { error } = await supabase.auth.exchangeCodeForSession(code);
+
         if (!error) {
             const forwardedHost = request.headers.get("x-forwarded-host");
             const isLocalEnv = process.env.NODE_ENV === "development";
+
             if (isLocalEnv) {
                 return NextResponse.redirect(`${origin}${next}`);
             } else if (forwardedHost) {
@@ -19,8 +21,12 @@ export async function GET(request: Request) {
             } else {
                 return NextResponse.redirect(`${origin}${next}`);
             }
+        } else {
+            console.error("Auth Callback Error:", error);
+            return NextResponse.redirect(`${origin}/auth/auth-code-error?error=${encodeURIComponent(error.message)}`);
         }
     }
 
-    return NextResponse.redirect(`${origin}/auth/auth-code-error`);
+    console.error("Auth Callback Missing Code");
+    return NextResponse.redirect(`${origin}/auth/auth-code-error?error=missing_code`);
 }
