@@ -1,3 +1,6 @@
+import { ThemeProvider } from "@/components/theme-provider";
+import { GlobalBackground } from "@/components/global-background";
+import { InstallPrompt } from "@/components/install-prompt";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -27,7 +30,16 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <GlobalBackground />
+          <InstallPrompt />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

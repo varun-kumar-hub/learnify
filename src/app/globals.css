@@ -14,49 +14,93 @@
   --radius-lg: var(--radius);
 }
 
-:root {
-  --radius: 0.75rem;
-
-  /* Advanced Dark Mode Palette */
-  --background: oklch(0.02 0.01 260);
-  /* Deep Void Blue (Darker) */
-  --foreground: oklch(0.98 0 0);
-  /* Pure White */
-
-  --card: oklch(0.12 0.02 260);
-  /* Glassmorphic Panel */
-  --card-foreground: oklch(0.98 0 0);
-
-  --popover: oklch(0.12 0.02 260);
-  --popover-foreground: oklch(0.98 0 0);
-
-  --primary: oklch(0.6 0.18 250);
-  /* Electric Blue */
-  --primary-foreground: oklch(1 0 0);
-
-  --secondary: oklch(0.2 0.03 260);
-  /* Muted Navy */
-  --secondary-foreground: oklch(0.9 0 0);
-
-  --muted: oklch(0.2 0.03 260);
-  --muted-foreground: oklch(0.7 0.05 260);
-  /* Soft Blue-Grey */
-
-  --accent: oklch(0.25 0.05 250);
-  /* Highlight */
-  --accent-foreground: oklch(1 0 0);
-
-  --destructive: oklch(0.6 0.25 25);
-  /* Neon Red */
-  --destructive-foreground: oklch(1 0 0);
-
-  --border: oklch(1 0 0 / 10%);
-  /* 10% White Border */
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.6 0.18 250);
-}
-
 @layer base {
+  :root {
+    --radius: 0.75rem;
+
+    /* == LIGHT THEME (Structured Intelligence - Academic) == */
+    --background: oklch(0.985 0.002 240);
+    /* #F8FAFC - Near White */
+    --foreground: oklch(0.15 0.02 260);
+    /* #1E293B - Slate 800 */
+
+    --card: oklch(1 0 0);
+    /* White */
+    --card-foreground: oklch(0.15 0.02 260);
+
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.15 0.02 260);
+
+    --primary: oklch(0.55 0.22 260);
+    /* #3B82F6 - Intelligent Blue */
+    --primary-foreground: oklch(1 0 0);
+
+    --secondary: oklch(0.96 0.01 240);
+    /* #F1F5F9 - Slate 100 */
+    --secondary-foreground: oklch(0.25 0.02 260);
+
+    --muted: oklch(0.96 0.01 240);
+    --muted-foreground: oklch(0.5 0.03 260);
+    /* #64748B - Slate 500 */
+
+    --accent: oklch(0.94 0.02 240);
+    /* #E2E8F0 - Slate 200 */
+    --accent-foreground: oklch(0.15 0.02 260);
+
+    --destructive: oklch(0.6 0.2 25);
+    --destructive-foreground: oklch(1 0 0);
+
+    --border: oklch(0.92 0.01 240);
+    /* #E2E8F0 - Slate 200 */
+    --input: oklch(0.92 0.01 240);
+    --ring: oklch(0.55 0.22 260);
+
+    /* Custom Tokens */
+    --grid-color: rgba(59, 130, 246, 0.08);
+    /* Faint Blue Grid */
+    --glow-color: rgba(59, 130, 246, 0.15);
+  }
+
+  .dark {
+    /* == DARK THEME (Immersive - Premium) == */
+    --background: oklch(0.12 0.02 260);
+    /* #0F172A - Slate 900 */
+    --foreground: oklch(0.98 0 0);
+    /* White */
+
+    --card: oklch(0.15 0.02 260);
+    /* Slate 900+ */
+    --card-foreground: oklch(0.98 0 0);
+
+    --popover: oklch(0.15 0.02 260);
+    --popover-foreground: oklch(0.98 0 0);
+
+    --primary: oklch(0.6 0.18 250);
+    /* Electric Blue */
+    --primary-foreground: oklch(1 0 0);
+
+    --secondary: oklch(0.2 0.03 260);
+    /* Slate 800 */
+    --secondary-foreground: oklch(0.9 0 0);
+
+    --muted: oklch(0.2 0.03 260);
+    --muted-foreground: oklch(0.7 0.05 260);
+
+    --accent: oklch(0.25 0.05 250);
+    --accent-foreground: oklch(1 0 0);
+
+    --destructive: oklch(0.6 0.25 25);
+    --destructive-foreground: oklch(1 0 0);
+
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.6 0.18 250);
+
+    /* Custom Tokens */
+    --grid-color: rgba(255, 255, 255, 0.03);
+    --glow-color: rgba(56, 189, 248, 0.15);
+  }
+
   * {
     border-color: var(--border);
     outline-color: color-mix(in skipped, var(--ring), transparent 50%);
@@ -68,14 +112,8 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    /* Modern Educative Background: Deep Slate with subtle grid and soft glows */
-    background-color: #020617;
-    background-image:
-      radial-gradient(circle at 50% -20%, rgba(56, 189, 248, 0.1), transparent 80%),
-      radial-gradient(circle at 0% 0%, rgba(56, 189, 248, 0.05), transparent 40%),
-      linear-gradient(to bottom, transparent, #020617),
-      url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0V0zm1 1h38v38H1V1z' fill='%23ffffff' fill-opacity='0.02'/%3E%3C/svg%3E");
-    background-attachment: fixed;
+    /* Background handled by GlobalBackground component */
+    background-color: var(--background);
   }
 }
 

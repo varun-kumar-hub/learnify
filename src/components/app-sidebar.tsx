@@ -51,7 +51,7 @@ export function AppSidebar() {
 
             {/* Sidebar Container */}
             <div className={cn(
-                "flex flex-col py-6 h-screen z-50 transition-all duration-300 overflow-hidden",
+                "flex flex-col py-6 h-screen z-50 transition-all duration-300 overflow-hidden group",
                 "bg-black/80 backdrop-blur-xl border-r border-white/10",
                 // Mobile Styles
                 "fixed top-0 left-0 w-64 shadow-2xl shadow-black",
