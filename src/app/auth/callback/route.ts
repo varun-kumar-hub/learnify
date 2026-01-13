@@ -8,17 +8,22 @@ export async function GET(request: Request) {
 
     if (code) {
         const supabase = await createClient();
+        console.log("Exchanging code for session...");
         const { error } = await supabase.auth.exchangeCodeForSession(code);
 
         if (!error) {
+            console.log("Session exchange successful.");
             const forwardedHost = request.headers.get("x-forwarded-host");
             const isLocalEnv = process.env.NODE_ENV === "development";
 
             if (isLocalEnv) {
+                console.log("Redirecting for Local Env");
                 return NextResponse.redirect(`${origin}${next}`);
             } else if (forwardedHost) {
+                console.log("Redirecting for Forwarded Host:", forwardedHost);
                 return NextResponse.redirect(`https://${forwardedHost}${next}`);
             } else {
+                console.log("Redirecting for Origin:", origin);
                 return NextResponse.redirect(`${origin}${next}`);
             }
         } else {
