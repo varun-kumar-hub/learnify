@@ -26,6 +26,7 @@ export async function updateSession(request: NextRequest) {
                             ...options,
                             sameSite: 'lax',
                             path: '/',
+                            secure: process.env.NODE_ENV === 'production',
                         })
                     )
                 },
