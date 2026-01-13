@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Trash2, ArrowRight, BookOpen, AlertTriangle, Globe, Lock } from 'lucide-react'
@@ -27,10 +27,25 @@ interface SubjectCardProps {
 export function SubjectCard({ id, title, description, isPublic }: SubjectCardProps) {
     const [isPending, startTransition] = useTransition()
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+    const [optimisticPublic, setOptimisticPublic] = useState(isPublic)
+
+    // Sync local state with prop when it changes (server revalidation)
+    useEffect(() => {
+        setOptimisticPublic(isPublic)
+    }, [isPublic])
 
     function handleTogglePublic(checked: boolean) {
+        // Optimistic update
+        setOptimisticPublic(checked)
+
         startTransition(async () => {
-            await toggleSubjectVisibility(id, checked)
+            try {
+                await toggleSubjectVisibility(id, checked)
+            } catch (error) {
+                // Revert on error
+                setOptimisticPublic(!checked)
+                console.error("Failed to toggle visibility:", error)
+            }
         })
     }
 
@@ -52,22 +67,30 @@ export function SubjectCard({ id, title, description, isPublic }: SubjectCardPro
                 </CardHeader>
 
                 <CardFooter className="mt-auto flex flex-col gap-4 relative z-30">
-                    <div className="w-full flex items-center justify-between p-3 rounded-xl bg-zinc-800/50 border border-white/10 hover:border-white/20 transition-colors">
-                        <div className="flex flex-col gap-0.5">
+                    <div
+                        className="w-full flex items-center justify-between p-3 rounded-xl bg-zinc-800/50 border border-white/10 hover:border-white/20 transition-colors cursor-pointer relative z-50"
+                        onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            if (!isPending) handleTogglePublic(!optimisticPublic)
+                        }}
+                    >
+                        <div className="flex flex-col gap-0.5 pointer-events-none">
                             <div className="flex items-center gap-2 text-sm font-medium text-white">
-                                {isPublic ? <Globe className="h-4 w-4 text-blue-400" /> : <Lock className="h-4 w-4 text-zinc-400" />}
-                                <span>{isPublic ? "Public" : "Private"}</span>
+                                {optimisticPublic ? <Globe className="h-4 w-4 text-blue-400" /> : <Lock className="h-4 w-4 text-zinc-400" />}
+                                <span>{optimisticPublic ? "Public" : "Private"}</span>
                             </div>
                             <span className="text-xs text-zinc-500">
-                                {isPublic ? "Visible to community" : "Only you can see this"}
+                                {optimisticPublic ? "Visible to community" : "Only you can see this"}
                             </span>
                         </div>
-                        <Switch
-                            checked={isPublic}
-                            onCheckedChange={handleTogglePublic}
-                            disabled={isPending}
-                            className="data-[state=checked]:bg-blue-600 bg-zinc-700"
-                        />
+                        <div className="pointer-events-none">
+                            <Switch
+                                checked={optimisticPublic}
+                                disabled={isPending}
+                                className="data-[state=checked]:bg-blue-600 bg-zinc-700"
+                            />
+                        </div>
                     </div>
 
                     <div className="flex gap-2 w-full">

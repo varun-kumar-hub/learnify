@@ -177,8 +177,8 @@ export async function getSubject(id: string) {
         return { error: `Subject ID ${id} does not exist in the database.` }
     }
 
-    // Check ownership
-    if (globalSubject.user_id !== user.id) {
+    // Check ownership or public access
+    if (globalSubject.user_id !== user.id && !globalSubject.is_public) {
         return { error: `Access Denied. Subject Owner: ${globalSubject.user_id}, Current User: ${user.id}` }
     }
 
@@ -434,8 +434,32 @@ export async function generateContent(topicId: string) {
         RETURN JSON ONLY.
     `
 
+    // Retry logic for 429 Rate Limits
+    let result;
+    let attempt = 0;
+    const maxRetries = 3;
+
+    while (attempt < maxRetries) {
+        try {
+            result = await model.generateContent(prompt)
+            break; // Success
+        } catch (error: any) {
+            if (error.message?.includes('429') || error.message?.includes('Too Many Requests')) {
+                attempt++;
+                if (attempt === maxRetries) throw error;
+
+                // Exponential backoff: 2s, 4s, 8s
+                const delay = 2000 * Math.pow(2, attempt - 1);
+                console.log(`Rate limit hit. Retrying in ${delay}ms... (Attempt ${attempt}/${maxRetries})`)
+                await new Promise(resolve => setTimeout(resolve, delay));
+            } else {
+                throw error; // Not a rate limit error
+            }
+        }
+    }
+
     try {
-        const result = await model.generateContent(prompt)
+        if (!result) throw new Error("Failed to get response after retries")
         const response = await result.response
         const text = response.text()
         const jsonStr = text.replace(/```json\n|\n```/g, "").replace(/```/g, "").trim()

@@ -14,13 +14,17 @@ interface SubjectHeaderActionsProps {
     subjectId: string
     title: string
     hasApiKey?: boolean
+    isOwner: boolean
 }
 
-export function SubjectHeaderActions({ subjectId, title, hasApiKey = false }: SubjectHeaderActionsProps) {
+export function SubjectHeaderActions({ subjectId, title, hasApiKey = false, isOwner }: SubjectHeaderActionsProps) {
     const [isGenerating, startGenerating] = useTransition()
     const [isAdding, startAdding] = useTransition()
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
     const [newTopicTitle, setNewTopicTitle] = useState('')
+
+    // Hide all actions if not owner
+    if (!isOwner) return null
 
     function handleGenerate() {
         startGenerating(async () => {

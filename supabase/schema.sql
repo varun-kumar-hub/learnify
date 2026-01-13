@@ -25,6 +25,12 @@ create table if not exists activity_logs (
 
 alter table activity_logs enable row level security;
 
+do $$ begin
+  drop policy if exists "Users can insert their own activity" on activity_logs;
+  drop policy if exists "Users can update their own activity" on activity_logs;
+  drop policy if exists "Users can view their own activity" on activity_logs;
+end $$;
+
 create policy "Users can insert their own activity"
   on activity_logs for insert
   with check ((select auth.uid()) = user_id);
@@ -253,3 +259,34 @@ BEGIN
         ALTER TABLE subjects ADD COLUMN clones integer default 0;
     END IF;
 END $$;
+
+-- RLS Update for Community Access
+-- 1. Everyone can view public subjects
+drop policy if exists "Everyone can view public subjects" on subjects;
+create policy "Everyone can view public subjects" on subjects for select using (is_public = true);
+
+-- 2. Everyone can view topics of public subjects
+drop policy if exists "Everyone can view topics of public subjects" on topics;
+create policy "Everyone can view topics of public subjects" on topics for select using (
+  exists (select 1 from subjects where subjects.id = topics.subject_id and subjects.is_public = true)
+);
+
+-- 3. Everyone can view dependencies of public subjects
+drop policy if exists "Everyone can view dependencies of public subjects" on topic_dependencies;
+create policy "Everyone can view dependencies of public subjects" on topic_dependencies for select using (
+  exists (
+    select 1 from topics 
+    join subjects on subjects.id = topics.subject_id
+    where topics.id = topic_dependencies.parent_topic_id and subjects.is_public = true
+  )
+);
+
+-- 4. Everyone can view content of public subjects
+drop policy if exists "Everyone can view content of public subjects" on topic_content;
+create policy "Everyone can view content of public subjects" on topic_content for select using (
+  exists (
+    select 1 from topics 
+    join subjects on subjects.id = topics.subject_id
+    where topics.id = topic_content.topic_id and subjects.is_public = true
+  )
+);

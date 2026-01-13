@@ -98,7 +98,12 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
 
                     <div className="h-4 w-px bg-white/10" />
 
-                    <SubjectHeaderActions subjectId={subject.id} title={subject.title} hasApiKey={hasApiKey} />
+                    <SubjectHeaderActions
+                        subjectId={subject.id}
+                        title={subject.title}
+                        hasApiKey={hasApiKey}
+                        isOwner={subject.user_id === user.id}
+                    />
                 </div>
             </header>
 
