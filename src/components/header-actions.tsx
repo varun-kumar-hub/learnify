@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Settings, Key, Flame } from 'lucide-react'
+import { Settings, Key, Flame, LogOut } from 'lucide-react'
 import { SettingsDialog } from '@/components/settings-dialog'
 import { GeminiKeyModal } from '@/components/gemini-key-modal'
-import { getStreak } from '@/app/actions'
+import { getStreak, logout } from '@/app/actions'
 
 interface HeaderActionsProps {
     profile: any
@@ -50,6 +50,18 @@ export function HeaderActions({ profile, email }: HeaderActionsProps) {
 
             {/* Settings Dialog */}
             <SettingsDialog initialName={profile?.full_name as string} hasKey={profile?.hasKey || false} />
+
+            {/* Direct Log Out Button (Visible) */}
+            <form action={logout}>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-zinc-500 hover:text-red-400 hover:bg-red-950/20"
+                    title="Log Out"
+                >
+                    <LogOut className="h-5 w-5" />
+                </Button>
+            </form>
 
             {/* API Key Modal (Standalone) */}
             <GeminiKeyModal
