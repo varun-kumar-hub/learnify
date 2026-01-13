@@ -10,12 +10,14 @@ import { SettingsDialog } from "@/components/settings-dialog";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link'
 
+import { LandingHero } from "@/components/landing-hero";
+
 export default async function Dashboard() {
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return redirect("/login");
+    return <LandingHero />;
   }
 
   const subjects = await getSubjects();

@@ -43,7 +43,7 @@ export async function updateSession(request: NextRequest) {
         !request.nextUrl.pathname.startsWith('/login') &&
         !request.nextUrl.pathname.startsWith('/signup') &&
         !request.nextUrl.pathname.startsWith('/auth') &&
-        request.nextUrl.pathname !== '/'
+        request.nextUrl.pathname !== '/' // Explicitly allow root for landing page
     ) {
         const url = request.nextUrl.clone()
         url.pathname = '/login'
