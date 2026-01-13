@@ -11,6 +11,7 @@ import { StatsCards } from "@/components/stats-cards"
 import { TopicCard } from "@/components/topic-card"
 
 import { UpNextList } from "@/components/up-next-list"
+import { ActivityChart } from "@/components/activity-chart"
 import { Switch } from "@/components/ui/switch"
 import { SubjectHeaderActions } from "@/components/subject-header-actions"
 import { Globe, Lock } from "lucide-react"
