@@ -12,10 +12,17 @@ import Link from 'next/link'
 
 import { LandingHero } from "@/components/landing-hero";
 
+import { cookies } from "next/headers";
+
 export default async function Dashboard() {
   const supabase = await createClient();
+  const cookieStore = await cookies();
+  const allCookies = cookieStore.getAll().map(c => c.name).join(', ');
+  console.log("Debug Dashboard: Cookies present:", allCookies);
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  console.log("Debug Dashboard: User found:", user?.id, "Error:", error?.message);
+
   if (!user) {
     return <LandingHero />;
   }
