@@ -23,8 +23,10 @@ export async function GET(request: Request) {
                 console.log("Redirecting for Forwarded Host:", forwardedHost);
                 return NextResponse.redirect(`https://${forwardedHost}${next}`);
             } else {
-                console.log("Redirecting for Origin:", origin);
-                return NextResponse.redirect(`${origin}${next}`);
+                console.log("Redirecting for Origin (Forced HTTPS):", origin);
+                // Force HTTPS in production if falling back to origin
+                const secureOrigin = origin.replace('http://', 'https://');
+                return NextResponse.redirect(`${secureOrigin}${next}`);
             }
         } else {
             console.error("Auth Callback Error:", error);

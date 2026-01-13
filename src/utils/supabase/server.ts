@@ -22,10 +22,12 @@ export async function createClient() {
                                 secure: process.env.NODE_ENV === 'production',
                             })
                         );
-                    } catch {
+                    } catch (error) {
                         // The `setAll` method was called from a Server Component.
                         // This can be ignored if you have middleware refreshing
                         // user sessions.
+                        // DEBUG: Inspecting if this is failing in Route Handlers
+                        console.error("Cookie setAll Error:", error);
                     }
                 },
             },
