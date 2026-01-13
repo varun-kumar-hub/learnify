@@ -77,11 +77,23 @@ export function SettingsDialog({ initialName = "", hasKey = false }: SettingsDia
                 </Button>
             </DialogTrigger>
             <DialogContent className="absolute top-16 right-6 w-[400px] bg-zinc-950 border-zinc-800 text-white shadow-2xl p-0 overflow-hidden sm:rounded-xl data-[state=open]:slide-in-from-top-2 data-[state=open]:fade-in-0 sm:zoom-in-95 data-[state=closed]:slide-out-to-top-2 data-[state=closed]:fade-out-0">
-                <DialogHeader>
+                <DialogHeader className="relative pr-16 text-left">
                     <DialogTitle>Settings</DialogTitle>
                     <DialogDescription>
-                        Manage your account preferences and API keys.
+                        Manage your account preferences.
                     </DialogDescription>
+
+                    {/* Top Right Log Out Button */}
+                    <form action={logout} className="absolute top-0 right-0">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-zinc-500 hover:text-red-400 hover:bg-red-950/20 rounded-full h-8 w-8"
+                            title="Log Out"
+                        >
+                            <LogOut className="h-4 w-4" />
+                        </Button>
+                    </form>
                 </DialogHeader>
 
                 <Tabs defaultValue="profile" className="w-full">
@@ -144,15 +156,9 @@ export function SettingsDialog({ initialName = "", hasKey = false }: SettingsDia
                     </TabsContent>
                 </Tabs>
 
-                <DialogFooter className="sm:justify-start border-t border-white/10 pt-4 mt-4">
-                    <form action={logout} className="w-full">
-                        <Button variant="ghost" className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-950/20 gap-2">
-                            <LogOut className="h-4 w-4" />
-                            Log Out
-                        </Button>
-                    </form>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+            </Tabs>
+            {/* Footer removed: Log Out moved to Header */}
+        </DialogContent>
+        </Dialog >
     )
 }
