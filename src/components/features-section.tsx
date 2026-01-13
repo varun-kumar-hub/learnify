@@ -37,12 +37,12 @@ export function FeaturesSection() {
 
 function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
     return (
-        <div className="group p-8 rounded-3xl bg-zinc-900/50 border border-white/5 hover:border-blue-500/30 hover:bg-zinc-900/80 transition-all duration-300">
+        <div className="group p-8 rounded-3xl bg-card/50 border border-border/50 hover:border-blue-500/30 hover:bg-card/80 transition-all duration-300 shadow-sm hover:shadow-md">
             <div className="mb-6 inline-flex p-4 bg-blue-600 rounded-xl shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform duration-300">
                 {icon}
             </div>
-            <h3 className="text-xl font-bold text-white mb-3">{title}</h3>
-            <p className="text-zinc-400 leading-relaxed">{description}</p>
+            <h3 className="text-xl font-bold text-foreground mb-3">{title}</h3>
+            <p className="text-muted-foreground leading-relaxed">{description}</p>
         </div>
     )
 }

@@ -25,8 +25,8 @@ export function MethodologySection() {
                         </div>
                         <div className="flex-1 relative group">
                             <div className="absolute inset-0 bg-blue-500/20 blur-3xl rounded-full -z-10 group-hover:bg-blue-500/30 transition-colors duration-500" />
-                            <div className="relative aspect-video w-full rounded-2xl border border-white/10 bg-zinc-900/50 backdrop-blur-sm overflow-hidden shadow-2xl p-2">
-                                <div className="relative w-full h-full rounded-xl overflow-hidden bg-black/40">
+                            <div className="relative aspect-video w-full rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden shadow-2xl p-2">
+                                <div className="relative w-full h-full rounded-xl overflow-hidden bg-muted/20">
                                     <Image
                                         src="/landing/methodology_goal.png"
                                         alt="Declare Intent"
@@ -49,8 +49,8 @@ export function MethodologySection() {
                         </div>
                         <div className="flex-1 relative group">
                             <div className="absolute inset-0 bg-purple-500/20 blur-3xl rounded-full -z-10 group-hover:bg-purple-500/30 transition-colors duration-500" />
-                            <div className="relative aspect-video w-full rounded-2xl border border-white/10 bg-zinc-900/50 backdrop-blur-sm overflow-hidden shadow-2xl p-2">
-                                <div className="relative w-full h-full rounded-xl overflow-hidden bg-black/40">
+                            <div className="relative aspect-video w-full rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden shadow-2xl p-2">
+                                <div className="relative w-full h-full rounded-xl overflow-hidden bg-muted/20">
                                     <Image
                                         src="/landing/methodology_graph.png"
                                         alt="Visual Synthesis"
@@ -73,8 +73,8 @@ export function MethodologySection() {
                         </div>
                         <div className="flex-1 relative group">
                             <div className="absolute inset-0 bg-emerald-500/20 blur-3xl rounded-full -z-10 group-hover:bg-emerald-500/30 transition-colors duration-500" />
-                            <div className="relative aspect-video w-full rounded-2xl border border-white/10 bg-zinc-900/50 backdrop-blur-sm overflow-hidden shadow-2xl p-2">
-                                <div className="relative w-full h-full rounded-xl overflow-hidden bg-black/40">
+                            <div className="relative aspect-video w-full rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden shadow-2xl p-2">
+                                <div className="relative w-full h-full rounded-xl overflow-hidden bg-muted/20">
                                     <Image
                                         src="/landing/methodology_retention.png"
                                         alt="Permanent Storage"
