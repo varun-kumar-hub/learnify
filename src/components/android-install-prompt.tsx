@@ -49,7 +49,7 @@ export function AndroidInstallPrompt() {
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
-          className="fixed bottom-4 left-4 right-4 z-[9999] md:bottom-6 md:right-6 md:left-auto md:w-[400px] border-2 border-red-500"
+          className="fixed bottom-4 left-4 right-4 z-[9999] md:bottom-6 md:right-6 md:left-auto md:w-[400px]"
         >
           <div className="bg-background/95 backdrop-blur-md border border-border p-4 rounded-xl shadow-2xl flex items-center gap-4">
             <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
