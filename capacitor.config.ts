@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.learnify.app',
-  appName: 'Learnify',
+  appName: 'Learnify Rep',
   webDir: 'public', // Point to public as dummy, server url is used
   server: {
     url: 'https://learnify-rep1.vercel.app',
