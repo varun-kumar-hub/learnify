@@ -25,10 +25,10 @@ export function AndroidInstallPrompt() {
 
     // Show to everyone who hasn't dismissed it (and isn't in native app)
     // Relaxed restrictions as per user request to show on laptop too
-    // FORCE SHOW for debugging: Ignore dismissal and native check for now
-    // if (!isDismissed && !isNative) {
-    setIsVisible(true);
-    // }
+    // Standard behavior: Show if not dismissed and not native
+    if (!isDismissed && !isNative) {
+      setIsVisible(true);
+    }
   }, []);
 
   const handleDismiss = () => {
