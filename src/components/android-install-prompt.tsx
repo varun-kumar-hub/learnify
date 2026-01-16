@@ -25,11 +25,10 @@ export function AndroidInstallPrompt() {
 
     // Show to everyone who hasn't dismissed it (and isn't in native app)
     // Relaxed restrictions as per user request to show on laptop too
-    if (!isDismissed && !isNative) {
-      // Delay showing it slightly so it doesn't pop up instantly
-      const timer = setTimeout(() => setIsVisible(true), 3000);
-      return () => clearTimeout(timer);
-    }
+    // FORCE SHOW for debugging: Ignore dismissal and native check for now
+    // if (!isDismissed && !isNative) {
+    setIsVisible(true);
+    // }
   }, []);
 
   const handleDismiss = () => {
@@ -50,7 +49,7 @@ export function AndroidInstallPrompt() {
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
-          className="fixed bottom-4 left-4 right-4 z-[100] md:bottom-6 md:right-6 md:left-auto md:w-[400px]"
+          className="fixed bottom-4 left-4 right-4 z-[9999] md:bottom-6 md:right-6 md:left-auto md:w-[400px] border-2 border-red-500"
         >
           <div className="bg-background/95 backdrop-blur-md border border-border p-4 rounded-xl shadow-2xl flex items-center gap-4">
             <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
