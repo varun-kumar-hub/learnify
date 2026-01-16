@@ -46,7 +46,7 @@ export async function signup(formData: FormData) {
 const getURL = () => {
     // Hardcode production URL to ensure no mismatches
     if (process.env.NODE_ENV === 'production') {
-        return 'https://learnify-taupe-delta.vercel.app';
+        return 'https://learnify-rep1.vercel.app';
     }
     return 'http://localhost:3000';
 }
