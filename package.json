@@ -42,6 +42,7 @@
   },
   "devDependencies": {
     "@capacitor/android": "^8.0.1",
+    "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.0.1",
     "@tailwindcss/postcss": "^4",
     "@types/dagre": "^0.7.53",

@@ -53,8 +53,8 @@ export function AndroidInstallPrompt() {
           className="fixed bottom-4 left-4 right-4 z-50 md:bottom-6 md:right-6 md:left-auto md:w-[400px]"
         >
           <div className="bg-background/95 backdrop-blur-md border border-border p-4 rounded-xl shadow-2xl flex items-center gap-4">
-            <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
-              <Smartphone className="h-6 w-6 text-primary" />
+            <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
+              <Smartphone className="h-6 w-6 text-blue-600" />
             </div>
 
             <div className="flex-1 min-w-0">
@@ -68,7 +68,7 @@ export function AndroidInstallPrompt() {
               <Button
                 size="sm"
                 onClick={handleDownload}
-                className="h-8 px-3 text-xs"
+                className="h-8 px-3 text-xs bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Download className="h-3 w-3 mr-1.5" />
                 Install
