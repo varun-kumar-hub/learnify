@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Learnify',
   webDir: 'public', // Point to public as dummy, server url is used
   server: {
-    url: 'https://learnify-taupe-delta.vercel.app',
+    url: 'https://learnify-rep1.vercel.app',
     androidScheme: 'https'
   }
 };
