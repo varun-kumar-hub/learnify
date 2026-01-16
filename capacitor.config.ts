@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.learnify.app',
+  appId: 'com.learnify.rep',
   appName: 'Learnify Rep',
   webDir: 'public', // Point to public as dummy, server url is used
   server: {

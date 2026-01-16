@@ -4,7 +4,7 @@ android {
     namespace = "com.learnify.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.learnify.app"
+        applicationId "com.learnify.rep"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
