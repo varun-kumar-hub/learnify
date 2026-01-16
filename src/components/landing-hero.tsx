@@ -13,7 +13,7 @@ export function LandingHero({ isLoggedIn }: { isLoggedIn?: boolean }) {
             */}
 
             {/* Floating Pill Navbar */}
-            <nav className="sticky top-6 inset-x-0 z-50 mx-auto max-w-5xl px-6 h-16 rounded-full border border-border/50 bg-background/70 backdrop-blur-xl shadow-lg shadow-black/5 flex items-center justify-between transition-all duration-300">
+            <nav className="sticky top-[calc(1.5rem+env(safe-area-inset-top))] inset-x-0 z-50 mx-auto max-w-5xl px-6 h-16 rounded-full border border-border/50 bg-background/70 backdrop-blur-xl shadow-lg shadow-black/5 flex items-center justify-between transition-all duration-300">
                 {/* Left: Branding */}
                 <div className="flex items-center gap-3">
                     <div className="h-9 w-9 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20">
