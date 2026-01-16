@@ -23,7 +23,9 @@ export function AndroidInstallPrompt() {
     // Check if running in native app (Capacitor)
     const isNative = typeof window !== 'undefined' && (window as any).Capacitor?.isNative;
 
-    if (isMobile && !isDismissed && !isNative) {
+    // Show to everyone who hasn't dismissed it (and isn't in native app)
+    // Relaxed restrictions as per user request to show on laptop too
+    if (!isDismissed && !isNative) {
       // Delay showing it slightly so it doesn't pop up instantly
       const timer = setTimeout(() => setIsVisible(true), 3000);
       return () => clearTimeout(timer);
@@ -48,7 +50,7 @@ export function AndroidInstallPrompt() {
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
-          className="fixed bottom-4 left-4 right-4 z-50 md:hidden"
+          className="fixed bottom-4 left-4 right-4 z-50 md:bottom-6 md:right-6 md:left-auto md:w-[400px]"
         >
           <div className="bg-background/95 backdrop-blur-md border border-border p-4 rounded-xl shadow-2xl flex items-center gap-4">
             <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
