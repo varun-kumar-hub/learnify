@@ -156,11 +156,14 @@
 }
 
 @keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Global Typography Overrides */
+@layer base {
+  blockquote {
+    @apply border-l-4 border-primary/30 pl-6 py-2 my-6 italic text-muted-foreground bg-muted/30 rounded-r-lg;
   }
 }
