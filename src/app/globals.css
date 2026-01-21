@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "tw-animate-css";
+/* @import "tw-animate-css"; */
 
 @custom-variant dark (&:is(.dark *));
 
@@ -156,6 +156,10 @@
 }
 
 @keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
   to {
     transform: rotate(360deg);
   }
@@ -164,6 +168,18 @@
 /* Global Typography Overrides */
 @layer base {
   blockquote {
-    @apply border-l-4 border-primary/30 pl-6 py-2 my-6 italic text-muted-foreground bg-muted/30 rounded-r-lg;
+    border-left-width: 4px;
+    border-color: var(--primary);
+    opacity: 0.8;
+    padding-left: 1.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    font-style: italic;
+    color: var(--muted-foreground);
+    background-color: var(--muted);
+    border-top-right-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
   }
 }
