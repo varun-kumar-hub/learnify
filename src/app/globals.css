@@ -101,6 +101,7 @@
     --glow-color: rgba(56, 189, 248, 0.25);
   }
 
+
   * {
     border-color: var(--border);
     outline-color: color-mix(in skipped, var(--ring), transparent 50%);
@@ -114,6 +115,28 @@
     @apply bg-background text-foreground antialiased;
     /* Background handled by GlobalBackground component */
     background-color: var(--background);
+    /* Mobile text alignment fix: ensure broad readability */
+    text-align: left;
+  }
+}
+
+/* SOLIDIFY BUTTONS: Override utilities to prevent transparency issues */
+@layer components {
+
+  /* Make outline buttons solid in dark mode to stand out */
+  .dark .button-outline {
+    background-color: rgba(15, 23, 42, 0.8) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+  }
+
+  /* Make secondary buttons more distinct */
+  .dark .button-secondary {
+    background-color: rgba(30, 41, 59, 1) !important;
+  }
+
+  /* Ensure text alignment in containers */
+  .container-fix {
+    @apply mx-auto px-6 max-w-7xl;
   }
 }
 

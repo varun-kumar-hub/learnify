@@ -3,13 +3,17 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Download, X } from "lucide-react"
+import { Capacitor } from '@capacitor/core'
 
 export function InstallPrompt() {
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
     const [isVisible, setIsVisible] = useState(false)
 
     useEffect(() => {
-        // 1. Check if already installed (standalone mode)
+        // 1. Check if native platform (Capacitor)
+        if (Capacitor.isNativePlatform()) return
+
+        // 2. Check if already installed (standalone mode)
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches
         if (isStandalone) return
 

@@ -25,11 +25,11 @@ const nodeTypes = {
 const dagreGraph = new dagre.graphlib.Graph()
 dagreGraph.setDefaultEdgeLabel(() => ({}))
 
-const nodeWidth = 180
-const nodeHeight = 60
+const nodeWidth = 250
+const nodeHeight = 100
 
 const getLayoutedElements = (nodes: any[], edges: Edge[]) => {
-    dagreGraph.setGraph({ rankdir: 'TB', ranksep: 80, nodesep: 100 }) // TB = Top to Bottom
+    dagreGraph.setGraph({ rankdir: 'TB', ranksep: 150, nodesep: 100 }) // TB = Top to Bottom
 
     nodes.forEach((node) => {
         dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight })

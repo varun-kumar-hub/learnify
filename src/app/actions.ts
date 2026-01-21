@@ -93,6 +93,55 @@ async function getApiKeyInternal() {
     return null
 }
 
+async function extractTextFromFile(file: File): Promise<string> {
+    const buffer = Buffer.from(await file.arrayBuffer())
+    const type = file.type
+    const name = file.name.toLowerCase()
+
+    try {
+        if (type === 'application/pdf' || name.endsWith('.pdf')) {
+            const pdf = require('pdf-parse');
+            const data = await pdf(buffer)
+            return data.text
+        }
+        else if (type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || name.endsWith('.docx')) {
+            const mammoth = await import('mammoth');
+            const result = await mammoth.extractRawText({ buffer })
+            return result.value
+        }
+        else if (type.startsWith('text/') || name.endsWith('.txt') || name.endsWith('.md')) {
+            return buffer.toString('utf-8')
+        }
+        else if (type.startsWith('image/')) {
+            // Image extraction using Gemini Vision
+            const apiKey = await getApiKeyInternal()
+            if (!apiKey) {
+                console.warn("Skipping image extraction: No API Key found.")
+                return ""
+            }
+
+            const genAI = new GoogleGenerativeAI(apiKey)
+            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
+
+            const prompt = "Extract all legible text from this image. Return ONLY the text, preserving the structure where possible."
+            const imagePart = {
+                inlineData: {
+                    data: buffer.toString('base64'),
+                    mimeType: type
+                }
+            }
+
+            const result = await model.generateContent([prompt, imagePart])
+            const response = await result.response
+            return response.text()
+        }
+        return ""
+    } catch (e) {
+        console.error("File parsing error:", e)
+        return ""
+    }
+}
+
 // === SUBJECTS ===
 
 export async function getSubjects() {
@@ -132,15 +181,53 @@ export async function createSubject(formData: FormData) {
 
     const title = formData.get('title') as string
     const description = formData.get('description') as string
+    const file = formData.get('file') as File | null
 
-    if (!title) throw new Error('Title is required')
+    let sourceText = ""
+
+    if (file && file.size > 0) {
+        try {
+            sourceText = await extractTextFromFile(file)
+        } catch (error) {
+            console.error("Text extraction failed:", error)
+        }
+    }
+
+    // Auto-generate title if missing but text exists
+    let finalTitle = title
+    let finalDesc = description
+
+    if (!finalTitle && sourceText) {
+        // AI Auto-Title Generation
+        try {
+            const apiKey = await getApiKeyInternal()
+            if (apiKey) {
+                const genAI = new GoogleGenerativeAI(apiKey)
+                const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
+                const titlePrompt = `Analyze this text and provide specific Subject Name (max 5 words). Text sample: ${sourceText.slice(0, 1000)}... Return ONLY the subject name.`
+                const result = await model.generateContent(titlePrompt)
+                const response = await result.response
+                finalTitle = response.text().trim()
+            }
+        } catch (e) {
+            console.error("Auto-title failed:", e)
+        }
+
+        // Fallback if AI fails or no key
+        if (!finalTitle) {
+            finalTitle = (file as File).name.split('.')[0]
+        }
+    }
+
+    if (!finalTitle) throw new Error('Title is required')
 
     const { error } = await supabase
         .from('subjects')
         .insert({
             user_id: user.id,
-            title,
-            description,
+            title: finalTitle,
+            description: finalDesc,
+            source_text: sourceText,
             is_public: true, // Auto-public by default to encourage community sharing
         })
 
@@ -274,7 +361,7 @@ export async function generateTopics(subjectId: string) {
     if (!user) throw new Error('Not authenticated')
 
     // 1. Get Subject Details
-    const { data: subject } = await supabase.from('subjects').select('title, description').eq('id', subjectId).single()
+    const { data: subject } = await supabase.from('subjects').select('title, description, source_text').eq('id', subjectId).single()
     if (!subject) throw new Error('Subject not found')
 
     // 2. Get API Key
@@ -289,6 +376,7 @@ export async function generateTopics(subjectId: string) {
         Act as a **University Professor and Expert Curriculum Designer**.
         Create a **comprehensive, advanced-level knowledge graph** for the subject: "${subject.title}".
         Context: ${subject.description || "In-depth academic exploration."}
+        ${subject.source_text ? `\nSOURCE MATERIAL:\n${subject.source_text.slice(0, 50000)}... [Truncated for prompt]\n\nINSTRUCTION: USE THE SOURCE MATERIAL AS GROUND TRUTH. Structure the topics to mirror the flow and depth of this document.` : ""}
         
         Your goal is to structure a rigorous learning path that matches a top-tier university syllabus.
         
@@ -296,7 +384,11 @@ export async function generateTopics(subjectId: string) {
         
         Requirements:
         1. "topics": Array of objects { "id": "t1", "title": "Topic Name", "description": "Academic summary", "level": "Beginner|Intermediate|Advanced|Expert", "x": 0, "y": 0 }
-           - Generate **15-20** high-quality topics.
+           - **CRITICAL: DYNAMIC COUNT**: 
+             - If source material is **SHORT** (e.g. single image, < 500 words), generate **ONLY 5-10 topics**. Do NOT hallucinate extra topics.
+             - If source material is **MEDIUM** (e.g. chapter, 500-2000 words), generate **15-25 topics**.
+             - If source material is **LARGE** (e.g. full book, > 2000 words), generate **30-50 topics**.
+           - Ensure granular breakdown of complex concepts.
            - Ensure granular breakdown of complex concepts.
            - "x" and "y": Assign logical coordinates for a directed acyclic graph (DAG) layout. Flow from top (y=0) to bottom. Spread x for branches.
            - "id": Use simple strings like "t1", "t2".
@@ -650,6 +742,80 @@ If they ask about something unrelated, politely steer them back to ${topic.title
     } catch (e: any) {
         console.error("Chat Error:", e)
         return { role: 'model', content: "I'm having trouble connecting right now. Please check your API key or try again." }
+    }
+}
+
+export async function chatWithDashboardTutor(messages: { role: string, content: string }[]) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    // 1. Get User Profile & Recent Subjects for Context
+    const { data: profile } = await supabase.from('profiles').select('*').eq('id', user?.id).single()
+    const { data: recentSubjects } = await supabase
+        .from('subjects')
+        .select('title, description')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false })
+        .limit(5)
+
+    const subjectContext = recentSubjects?.map(s => `- ${s.title}: ${s.description?.slice(0, 50)}...`).join('\n') || "No active subjects."
+
+    // 2. API Key
+    const apiKey = await getApiKeyInternal()
+    if (!apiKey) throw new Error('API Key missing.')
+
+    // 3. Gemini Chat
+    const genAI = new GoogleGenerativeAI(apiKey)
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
+
+    // Construct history
+    const history = messages.slice(0, -1).map(m => ({
+        role: m.role === 'user' ? 'user' : 'model',
+        parts: [{ text: m.content }]
+    }))
+
+    const lastMessage = messages[messages.length - 1].content
+
+    const chat = model.startChat({
+        history: [
+            {
+                role: "user",
+                parts: [{
+                    text: `System Instruction: You are a **Personal Learning Assistant** for the user.
+                    
+                    **User Profile:**
+                    - Name: ${profile?.full_name || 'Student'}
+                    - Education: ${profile?.education_level || 'Not specified'}
+                    - Learning Style: ${profile?.learning_style || 'Not specified'}
+                    
+                    **Current Active Subjects:**
+                    ${subjectContext}
+                    
+                    **Goal:**
+                    - Answer ANY doubt the user has, primarily about their subjects but also general academic questions.
+                    - Be proactive: suggested related concepts if they seem stuck.
+                    - Use analogies and simple explanations.
+                    - If they ask about a specific file they uploaded (e.g. "my OS notes"), assume they are referring to one of the active subjects context.
+                    
+                    Keep answers concise, encouraging, and highly educational. Avoid "As an AI" disclaimers.`
+                }]
+            },
+            {
+                role: "model",
+                parts: [{ text: `Hello ${profile?.full_name || 'there'}! I'm ready to help you with your studies. What are we tackling today?` }]
+            },
+            ...history
+        ]
+    })
+
+    try {
+        const result = await chat.sendMessage(lastMessage)
+        const response = await result.response
+        const text = response.text()
+        return { role: 'model', content: text }
+    } catch (e: any) {
+        console.error("Dashboard Chat Error:", e)
+        return { role: 'model', content: "I'm having trouble connecting right now. Please check your API key." }
     }
 }
 

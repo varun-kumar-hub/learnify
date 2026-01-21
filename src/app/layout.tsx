@@ -2,6 +2,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { GlobalBackground } from "@/components/global-background";
 import { InstallPrompt } from "@/components/install-prompt";
 import { AndroidInstallPrompt } from "@/components/android-install-prompt";
+import { AuthListener } from "@/components/auth-listener";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -40,6 +41,7 @@ export default function RootLayout({
           <GlobalBackground />
           <InstallPrompt />
           <AndroidInstallPrompt />
+          <AuthListener />
           {children}
         </ThemeProvider>
       </body>
