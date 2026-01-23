@@ -49,18 +49,38 @@ export function LoginButtons() {
     }
 
     const handleGithubLogin = async () => {
-        // Github is less critical for the user request, but let's apply same logic if needed.
-        // For now, keep it simple using the server action for Web fallback.
-        await signInWithGithub()
+        setIsLoading(true)
+        try {
+            if (Capacitor.isNativePlatform()) {
+                // NATIVE FLOW
+                const supabase = createClient()
+                const { error } = await supabase.auth.signInWithOAuth({
+                    provider: 'github',
+                    options: {
+                        redirectTo: 'com.learnify.rep://github-auth',
+                    }
+                })
+                if (error) throw error
+            } else {
+                // WEB FLOW
+                await signInWithGithub()
+            }
+        } catch (e) {
+            console.error("Github Login failed", e)
+            setIsLoading(false)
+        }
     }
 
     return (
         <div className="grid grid-cols-2 gap-4">
-            <form action={signInWithGithub}>
-                <Button type="submit" variant="outline" className="w-full border-zinc-800 hover:bg-zinc-900 text-white bg-zinc-900">
-                    <Github className="mr-2 h-4 w-4" /> Github
-                </Button>
-            </form>
+            <Button
+                onClick={handleGithubLogin}
+                disabled={isLoading}
+                variant="outline"
+                className="w-full border-zinc-800 hover:bg-zinc-900 text-white bg-zinc-900"
+            >
+                <Github className="mr-2 h-4 w-4" /> Github
+            </Button>
 
             <Button
                 onClick={handleGoogleLogin}

@@ -65,11 +65,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                         <Button formAction={login} className="w-full bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-lg shadow-blue-900/20">
                             Sign In
                         </Button>
-
-                        <div className="relative flex justify-center text-xs uppercase"><span className="bg-zinc-950 px-2 text-zinc-400">Or continue with</span></div>
-
-                        <LoginButtons />
                     </form>
+
+                    <div className="relative flex justify-center text-xs uppercase my-4"><span className="bg-zinc-950 px-2 text-zinc-400">Or continue with</span></div>
+
+                    <LoginButtons />
                     <div className="mt-4 text-center text-sm">
                         <span className="text-zinc-400">Don&apos;t have an account? </span>
                         <Link href="/signup" className="text-blue-500 hover:text-blue-400 hover:underline">

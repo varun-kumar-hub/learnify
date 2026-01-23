@@ -389,7 +389,6 @@ export async function generateTopics(subjectId: string) {
              - If source material is **MEDIUM** (e.g. chapter, 500-2000 words), generate **15-25 topics**.
              - If source material is **LARGE** (e.g. full book, > 2000 words), generate **30-50 topics**.
            - Ensure granular breakdown of complex concepts.
-           - Ensure granular breakdown of complex concepts.
            - "x" and "y": Assign logical coordinates for a directed acyclic graph (DAG) layout. Flow from top (y=0) to bottom. Spread x for branches.
            - "id": Use simple strings like "t1", "t2".
         

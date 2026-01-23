@@ -5,7 +5,8 @@ const config: CapacitorConfig = {
   appName: 'Learnify Rep',
   webDir: 'public', // Point to public as dummy, server url is used
   server: {
-    url: 'https://learnify-rep1.vercel.app',
+    url: 'http://10.0.10.238:3000',
+    cleartext: true,
     androidScheme: 'https'
   },
   plugins: {

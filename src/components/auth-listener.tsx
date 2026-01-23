@@ -15,7 +15,7 @@ export function AuthListener() {
         const handleUrlOpen = async (data: any) => {
             // URL format: com.learnify.rep://google-auth#access_token=...&refresh_token=...
             const url = data.url
-            if (!url.includes('google-auth')) return
+            if (!url.includes('google-auth') && !url.includes('github-auth')) return
 
             console.log("Deep link received:", url)
 
