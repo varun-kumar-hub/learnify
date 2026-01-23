@@ -50,7 +50,19 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
         )
     }
 
-    const { nodes, edges } = await getSubjectTopics(id)
+    let nodes: any[] = [], edges: any[] = []
+    let fetchError = null
+
+    try {
+        const graphData = await getSubjectTopics(id)
+        nodes = graphData.nodes
+        edges = graphData.edges
+    } catch (e: any) {
+        console.error("Failed to fetch graph data:", e)
+        fetchError = e.message
+    }
+
+    // Fallback for empty state or error
     const isEmpty = nodes.length === 0
 
     // Calculate Stats
@@ -177,7 +189,11 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
                     <TabsContent value="topics">
                         {isEmpty ? (
                             <div className="p-8 text-center border border-dashed border-white/10 rounded-xl text-zinc-500">
-                                No topics generated yet.
+                                {fetchError ? (
+                                    <span className="text-red-400">Failed to load topics: {fetchError}</span>
+                                ) : (
+                                    "No topics generated yet."
+                                )}
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-500">

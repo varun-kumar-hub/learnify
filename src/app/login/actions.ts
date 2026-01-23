@@ -60,7 +60,13 @@ import { headers } from 'next/headers'
 export async function signInWithGithub() {
     const supabase = await createClient()
     const headersList = await headers()
-    const host = headersList.get('host') || 'localhost:3000'
+    let host = headersList.get('host') || 'localhost:3000'
+
+    // Fix: If running on 0.0.0.0 (dev server binding), force localhost for browser redirects
+    if (host.includes('0.0.0.0')) {
+        host = 'localhost:3000'
+    }
+
     const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
 
     // Construct the callback URL dynamically based on the current host (localhost or IP)
@@ -86,7 +92,12 @@ export async function signInWithGithub() {
 export async function signInWithGoogle() {
     const supabase = await createClient()
     const headersList = await headers()
-    const host = headersList.get('host') || 'localhost:3000'
+    let host = headersList.get('host') || 'localhost:3000'
+
+    if (host.includes('0.0.0.0')) {
+        host = 'localhost:3000'
+    }
+
     const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
 
     const redirectUrl = `${protocol}://${host}/auth/callback?next=/dashboard`

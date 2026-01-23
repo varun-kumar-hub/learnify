@@ -24,6 +24,8 @@ export function SubjectHeaderActions({ subjectId, title, hasApiKey = false, isOw
     const [isGenerating, startGenerating] = useTransition()
     const [isAdding, startAdding] = useTransition()
     const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+    const [errorModalOpen, setErrorModalOpen] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
     const [newTopicTitle, setNewTopicTitle] = useState('')
 
     // Hide all actions if not owner
@@ -38,7 +40,8 @@ export function SubjectHeaderActions({ subjectId, title, hasApiKey = false, isOw
                 router.refresh() // Force reload to show new topics
             } catch (error: any) {
                 console.error("Failed to generate:", error)
-                alert(`Failed to generate topics: ${error.message || "Unknown error"}`)
+                setErrorMessage(error.message || "An unexpected error occurred.")
+                setErrorModalOpen(true)
             }
         })
     }
@@ -116,7 +119,28 @@ export function SubjectHeaderActions({ subjectId, title, hasApiKey = false, isOw
                         </DialogFooter>
                     </form>
                 </DialogContent>
-            </Dialog>
-        </div>
+            </form>
+        </DialogContent>
+            </Dialog >
+
+        {/* Error Modal */ }
+        < Dialog open = { errorModalOpen } onOpenChange = { setErrorModalOpen } >
+            <DialogContent className="bg-red-950/20 border-red-900/50 text-white sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle className="text-red-400 flex items-center gap-2">
+                        Generation Failed
+                    </DialogTitle>
+                    <DialogDescription className="text-red-200/80">
+                        {errorMessage}
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                    <Button onClick={() => setErrorModalOpen(false)} variant="outline" className="border-red-900/50 hover:bg-red-900/20 text-red-300">
+                        Close
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+            </Dialog >
+        </div >
     )
 }

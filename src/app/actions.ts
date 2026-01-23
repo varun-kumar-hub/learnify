@@ -323,7 +323,7 @@ export async function getSubjectTopics(subjectId: string) {
         .select('*')
         .eq('subject_id', subjectId)
 
-    if (topicsError) {
+    if (topicsError || !topics) {
         console.error('Error fetching topics:', topicsError)
         return { nodes: [], edges: [] }
     }

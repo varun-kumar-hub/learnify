@@ -57,6 +57,11 @@ export async function GET(request: Request) {
                 redirectUrl = `${secureOrigin}${next}`;
             }
 
+            // Fix: Ensure we never redirect to 0.0.0.0
+            if (origin.includes('0.0.0.0')) {
+                redirectUrl = redirectUrl.replace('0.0.0.0', 'localhost');
+            }
+
             // Create the response object
             const response = NextResponse.redirect(redirectUrl);
 
