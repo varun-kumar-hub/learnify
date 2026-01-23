@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { createSubject } from '@/app/actions'
+import { createSubject, generateTopics } from '@/app/actions'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus, Upload, CheckCircle2, Sparkles, Loader2 } from 'lucide-react'
 
@@ -16,26 +16,41 @@ export function CreateSubjectModal() {
     const [activeTab, setActiveTab] = useState("upload")
     const [file, setFile] = useState<File | null>(null)
 
-    async function handleSubmit(formData: FormData) {
-        if (activeTab === "upload" && file) {
-            formData.append('file', file)
-            // Title is optional for upload, handled by backend auto-title
-        } else {
-            // Manual mode: ensure file is cleared if any residue
-            formData.delete('file')
-        }
+    // Unified form submission handler
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+
+    function handleFormSubmit(formData: FormData) {
         startTransition(async () => {
+            setErrorMsg(null);
             try {
-                await createSubject(formData)
+                if (activeTab === "upload" && file) {
+                    formData.append('file', file)
+                } else {
+                    formData.delete('file')
+                }
+
+                const subjectId = await createSubject(formData)
+
+                if (activeTab === "upload" && subjectId) {
+                    try {
+                        await generateTopics(subjectId)
+                    } catch (genError) {
+                        console.error("Topic generation partial failure:", genError)
+                    }
+                }
+
                 setOpen(false)
                 setFile(null)
-                setActiveTab("upload") // Reset to default
-            } catch (error) {
-                console.error("Failed to create subject:", error)
+                setActiveTab("upload")
+            } catch (e: any) {
+                console.error("Creation error:", e);
+                setErrorMsg(e.message || "Failed to create subject. Please try again.");
             }
-        })
+        });
     }
+
+
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -45,7 +60,12 @@ export function CreateSubjectModal() {
                     Create New Subject
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] bg-zinc-950 border-zinc-800 text-white">
+            <DialogContent
+                className="sm:max-w-[500px] bg-zinc-950 border-zinc-800 text-white"
+                onInteractOutside={(e) => {
+                    e.preventDefault();
+                }}
+            >
                 <DialogHeader>
                     <DialogTitle>Create Subject</DialogTitle>
                     <DialogDescription>
@@ -63,7 +83,7 @@ export function CreateSubjectModal() {
                         </TabsTrigger>
                     </TabsList>
 
-                    <form action={handleSubmit}>
+                    <form action={handleFormSubmit}>
                         <TabsContent value="upload" className="space-y-4">
                             <div className={`grid gap-2 p-8 border-2 border-dashed rounded-xl transition-all text-center ${file ? 'border-green-500/50 bg-green-900/10' : 'border-zinc-800 bg-zinc-900/30 hover:bg-zinc-900/50 hover:border-zinc-700'}`}>
                                 <Label htmlFor="file" className="cursor-pointer space-y-4">
@@ -121,7 +141,12 @@ export function CreateSubjectModal() {
                             </div>
                         </TabsContent>
 
-                        <DialogFooter className="mt-6">
+                        <DialogFooter className="mt-6 flex-col gap-2">
+                            {errorMsg && (
+                                <div className="text-red-400 text-sm bg-red-900/10 p-2 rounded-md border border-red-900/20 w-full text-center">
+                                    {errorMsg}
+                                </div>
+                            )}
                             <Button type="submit" disabled={isPending || (activeTab === "upload" && !file)} className="w-full bg-blue-600 hover:bg-blue-500 h-10 text-base">
                                 {isPending ? (
                                     <>

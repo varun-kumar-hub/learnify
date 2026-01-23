@@ -44,7 +44,7 @@ export function AppSidebar() {
             <Button
                 variant="ghost"
                 size="icon"
-                className="fixed top-4 left-4 z-50 md:hidden text-white bg-zinc-900/50 backdrop-blur-md border border-white/10"
+                className="fixed top-[calc(1rem+env(safe-area-inset-top))] left-4 z-50 md:hidden text-white bg-zinc-900/50 backdrop-blur-md border border-white/10"
                 onClick={() => setIsOpen(true)}
             >
                 <Menu className="h-5 w-5" />

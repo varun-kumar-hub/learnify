@@ -119,10 +119,11 @@
     text-align: left;
 
     /* Mobile Safe Area Insets to prevent overlap with notch/status bar */
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
+    /* Using max() to ensure at least some padding if env() is 0 or unsupported */
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
 
 
   }
@@ -163,8 +164,19 @@
   }
 
   /* Hide Next.js Dev Indicator */
-  body>div[data-nextjs-toast],
-  body>nextjs-portal {
+  /* Hide Next.js Dev Indicator - Aggressive */
+  [data-nextjs-toast],
+  #nextjs-dev-indicator,
+  nextjs-portal,
+  body>div[data-nextjs-toast] {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  /* Additional safety for shadow dom containers if reachable */
+  .nextjs-toast-errors-parent {
     display: none !important;
   }
 }

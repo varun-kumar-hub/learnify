@@ -3,7 +3,7 @@ import { GlobalBackground } from "@/components/global-background";
 import { InstallPrompt } from "@/components/install-prompt";
 import { AndroidInstallPrompt } from "@/components/android-install-prompt";
 import { AuthListener } from "@/components/auth-listener";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -20,6 +20,14 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Learnify Rep",
   description: "Advanced Learning Path Generator",
+};
+
+export const viewport: Viewport = {
+  viewportFit: "cover",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({

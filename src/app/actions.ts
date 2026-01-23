@@ -186,10 +186,17 @@ export async function createSubject(formData: FormData) {
     let sourceText = ""
 
     if (file && file.size > 0) {
+        console.log(`Processing file: ${file.name}, Size: ${file.size}, Type: ${file.type}`);
         try {
             sourceText = await extractTextFromFile(file)
-        } catch (error) {
+            if (!sourceText || sourceText.trim().length === 0) {
+                console.warn(`Text extraction returned empty string for file: ${file.name}`);
+                throw new Error("Could not extract text from this file. It might be empty or scanned images without OCR.");
+            }
+            console.log(`Extracted text length: ${sourceText.length}`);
+        } catch (error: any) {
             console.error("Text extraction failed:", error)
+            throw new Error(`File processing failed: ${error.message}`);
         }
     }
 
@@ -221,7 +228,7 @@ export async function createSubject(formData: FormData) {
 
     if (!finalTitle) throw new Error('Title is required')
 
-    const { error } = await supabase
+    const { data, error } = await supabase
         .from('subjects')
         .insert({
             user_id: user.id,
@@ -230,13 +237,19 @@ export async function createSubject(formData: FormData) {
             source_text: sourceText,
             is_public: true, // Auto-public by default to encourage community sharing
         })
+        .select()
 
     if (error) {
         console.error('Error creating subject:', error)
-        throw new Error('Failed to create subject')
+        throw new Error(`Failed to create subject: ${error.message}`)
+    }
+
+    if (!data || data.length === 0) {
+        throw new Error('Subject created but no data returned.')
     }
 
     revalidatePath('/dashboard')
+    return data[0].id
 }
 
 export async function deleteSubject(id: string) {
@@ -368,6 +381,13 @@ export async function generateTopics(subjectId: string) {
     const apiKey = await getApiKeyInternal()
     if (!apiKey) throw new Error('API Key missing. Please set it in Settings.')
 
+    // 2.5 Check Existing Topics to prevent duplicates
+    const { data: existingTopics } = await supabase.from('topics').select('title').eq('subject_id', subjectId)
+    const existingTitles = existingTopics?.map(t => t.title) || []
+    const existingContext = existingTitles.length > 0
+        ? `\n\nEXCLUDE_LIST: The following topics already exist. DO NOT generate them again. Focus on missing concepts or deeper layers:\n${existingTitles.join(', ')}`
+        : ""
+
     // 3. Call Gemini
     const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" })
@@ -377,6 +397,7 @@ export async function generateTopics(subjectId: string) {
         Create a **comprehensive, advanced-level knowledge graph** for the subject: "${subject.title}".
         Context: ${subject.description || "In-depth academic exploration."}
         ${subject.source_text ? `\nSOURCE MATERIAL:\n${subject.source_text.slice(0, 50000)}... [Truncated for prompt]\n\nINSTRUCTION: USE THE SOURCE MATERIAL AS GROUND TRUTH. Structure the topics to mirror the flow and depth of this document.` : ""}
+        ${existingContext}
         
         Your goal is to structure a rigorous learning path that matches a top-tier university syllabus.
         
@@ -435,7 +456,15 @@ export async function generateTopics(subjectId: string) {
             t.status = 'AVAILABLE'
         })
 
-        const { error: insertError } = await supabase.from('topics').insert(topicsToInsert)
+        // Remove duplicates on insert just in case (checking against existingTitles strictly matches)
+        const finalTopicsToInsert = topicsToInsert.filter((t: any) => !existingTitles.includes(t.title))
+
+        if (finalTopicsToInsert.length === 0) {
+            // Nothing new generated
+            return
+        }
+
+        const { error: insertError } = await supabase.from('topics').insert(finalTopicsToInsert)
         if (insertError) throw insertError
 
         // Insert Dependencies
