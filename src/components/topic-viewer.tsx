@@ -187,13 +187,13 @@ export function TopicViewer({ topic, content, hasApiKey = false }: TopicViewerPr
         <div className="max-w-4xl mx-auto space-y-12 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
             {/* Overview */}
-            <section className="space-y-4 text-left relative">
+            <section className="space-y-4 text-left relative px-4 md:px-0">
 
 
                 <span className="inline-block px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-sm font-medium border border-blue-500/20">
                     {topic.level}
                 </span>
-                <h1 className="text-4xl md:text-5xl font-black tracking-tight">{topic.title}</h1>
+                <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">{topic.title}</h1>
 
                 <div className="relative max-w-4xl mx-auto group space-y-6">
                     <div className="text-xl leading-relaxed text-zinc-300 transition-all duration-500 prose prose-invert prose-lg max-w-none">

@@ -26,7 +26,7 @@ export default async function DashboardPage() {
         <div className="max-w-7xl mx-auto px-6 py-10 space-y-8">
 
             {/* Header */}
-            <div className="flex items-end justify-between">
+            <div className="flex flex-col items-start gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
                     <h1 className="text-3xl font-bold bg-gradient-to-br from-white to-zinc-500 bg-clip-text text-transparent mb-2">My Subjects</h1>
                     <p className="text-zinc-400">Manage your learning subjects and track progress</p>

@@ -135,6 +135,13 @@ export function CreateSubjectModal() {
                         </DialogFooter>
                     </form>
                 </Tabs>
+
+                {/* Blocking Overlay during Generation */}
+                {isPending && (
+                    <div className="absolute inset-0 z-50 bg-black/50 backdrop-blur-[1px] cursor-wait rounded-lg flex items-center justify-center">
+                        {/* Optional: You could move the loader here or just keep it on the button */}
+                    </div>
+                )}
             </DialogContent>
         </Dialog>
     )

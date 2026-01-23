@@ -18,6 +18,9 @@ export function LoginButtons() {
     const handleGoogleLogin = async () => {
         setIsLoading(true)
         try {
+            // DEBUG: Check platform
+            // alert(`Is Native: ${Capacitor.isNativePlatform()}`)
+
             if (Capacitor.isNativePlatform()) {
                 // NATIVE FLOW
                 const supabase = createClient()
@@ -27,22 +30,20 @@ export function LoginButtons() {
                         redirectTo: 'com.learnify.rep://google-auth',
                         queryParams: {
                             access_type: 'offline',
-                            prompt: 'consent',
+                            prompt: 'select_account consent',
                         }
                     }
                 })
-                if (error) throw error
+                if (error) {
+                    console.error(`Google Auth Error: ${error.message}`)
+                    throw error
+                }
                 // The browser will open, and AuthListener will handle the rest.
             } else {
                 // WEB FLOW - Use Server Action
-                // We use a hidden form or just call it directly if it accepts formData?
-                // Server actions called directly from onClick work if they don't depend on formData or if we act like a form.
-                // But the original usage was formAction. 
-                // Let's wrapping it in a form submission for consistency or just call it.
-                // signInWithGoogle() is async.
                 await signInWithGoogle()
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error("Login failed", e)
             setIsLoading(false)
         }
@@ -60,12 +61,15 @@ export function LoginButtons() {
                         redirectTo: 'com.learnify.rep://github-auth',
                     }
                 })
-                if (error) throw error
+                if (error) {
+                    console.error(`GitHub Auth Error: ${error.message}`)
+                    throw error
+                }
             } else {
                 // WEB FLOW
                 await signInWithGithub()
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error("Github Login failed", e)
             setIsLoading(false)
         }
