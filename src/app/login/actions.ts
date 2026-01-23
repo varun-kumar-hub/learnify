@@ -20,7 +20,7 @@ export async function login(formData: FormData) {
     }
 
     revalidatePath('/', 'layout')
-    return redirect('/')
+    return redirect('/dashboard')
 }
 
 export async function signup(formData: FormData) {
@@ -55,45 +55,16 @@ const getURL = () => {
     return 'http://localhost:3000';
 }
 
+import { headers } from 'next/headers'
+
 export async function signInWithGithub() {
     const supabase = await createClient()
+    const headersList = await headers()
+    const host = headersList.get('host') || 'localhost:3000'
+    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
 
-    // For mobile (Capacitor), we want to redirect to a custom scheme.
-    // Since we can't easily detect "mobile" here without extra headers,
-    // we will rely on the fact that if the user is on mobile, the browser won't open
-    // unless we use a deep link.
-    // OPTION: We can try to use a specific flow.
-    // But for simplicity, let's just use the web flow but ensure the callback 
-    // is caught by the intent filter if it matches the domain.
-    // However, Supabase auth redirects to the site URL.
-
-    // KEY FIX: Use the custom scheme for the redirect URL if possible.
-    // But Supabase only allows redirects to URLs allowed in the dashboard.
-    // The user needs to add `com.learnify.rep://auth/callback` to Supabase.
-
-    // Let's assume the user will be on mobile
-    // We can't know for sure here.
-    // A better approach is to let the client call signInWithOAuth directly (client-side SDK),
-    // but we are using server actions.
-
-    // For now, let's stick to the web URL, but rely on the Android Intent Filter 
-    // to intercept `https://learnify-rep1.vercel.app/auth/callback` if possible,
-    // OR try to use `com.learnify.rep`.
-
-    // The safest "universal" link approach is to use the production URL for callbacks,
-    // and have the app intercept it.
-    // ANDROID MANIFEST already has: <data android:scheme="https" android:host="learnify-rep1.vercel.app" />
-    // So if the user clicks "Back to App" or if the redirect happens, it SHOULD open.
-
-    // But often `localhost` fails.
-    // So let's use the local IP for dev if strictly needed, but `localhost` inside the Android emulator
-    // refers to the emulated device itself, not the host.
-    // So `http://localhost:3000/auth/callback` will fail.
-
-    let redirectUrl = `http://10.0.10.238:3000/auth/callback`; // Hardcoded local IP for dev
-    if (process.env.NODE_ENV === 'production') {
-        redirectUrl = `https://learnify-rep1.vercel.app/auth/callback`;
-    }
+    // Construct the callback URL dynamically based on the current host (localhost or IP)
+    const redirectUrl = `${protocol}://${host}/auth/callback?next=/dashboard`
 
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'github',
@@ -114,11 +85,11 @@ export async function signInWithGithub() {
 
 export async function signInWithGoogle() {
     const supabase = await createClient()
+    const headersList = await headers()
+    const host = headersList.get('host') || 'localhost:3000'
+    const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
 
-    let redirectUrl = `http://10.0.10.238:3000/auth/callback`; // Hardcoded local IP for dev
-    if (process.env.NODE_ENV === 'production') {
-        redirectUrl = `https://learnify-rep1.vercel.app/auth/callback`;
-    }
+    const redirectUrl = `${protocol}://${host}/auth/callback?next=/dashboard`
 
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
