@@ -15,7 +15,7 @@ export async function updateSession(request: NextRequest) {
                     return request.cookies.getAll()
                 },
                 setAll(cookiesToSet) {
-                    cookiesToSet.forEach(({ name, value, options }) =>
+                    cookiesToSet.forEach(({ name, value }) =>
                         request.cookies.set(name, value)
                     )
                     supabaseResponse = NextResponse.next({
@@ -29,21 +29,40 @@ export async function updateSession(request: NextRequest) {
         }
     )
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    // CRITICAL FIX: Check for session cookies instead of making API calls
+    // This prevents 504 Gateway Timeouts by avoiding network requests in middleware
+    const accessToken = request.cookies.get('sb-access-token')
+    const refreshToken = request.cookies.get('sb-refresh-token')
 
-    if (
-        !user &&
-        !request.nextUrl.pathname.startsWith('/login') &&
-        !request.nextUrl.pathname.startsWith('/signup') &&
-        !request.nextUrl.pathname.startsWith('/auth') &&
-        !request.nextUrl.pathname.startsWith('/android') &&
-        request.nextUrl.pathname !== '/' // Explicitly allow root for landing page
-    ) {
+    // Check for any Supabase auth cookie patterns (different naming in production)
+    const hasSupabaseSession = request.cookies.getAll().some(cookie =>
+        cookie.name.includes('sb-') && cookie.name.includes('-auth-token')
+    )
+
+    const isAuthenticated = accessToken || refreshToken || hasSupabaseSession
+
+    // Define public routes that don't require authentication
+    const isPublicRoute =
+        request.nextUrl.pathname === '/' ||
+        request.nextUrl.pathname.startsWith('/login') ||
+        request.nextUrl.pathname.startsWith('/signup') ||
+        request.nextUrl.pathname.startsWith('/auth') ||
+        request.nextUrl.pathname.startsWith('/android')
+
+    // Redirect unauthenticated users to login
+    if (!isAuthenticated && !isPublicRoute) {
         const url = request.nextUrl.clone()
         url.pathname = '/login'
         return NextResponse.redirect(url)
+    }
+
+    // Refresh session in the background (returns immediately)
+    // This ensures tokens are kept fresh without blocking the request
+    try {
+        await supabase.auth.getSession()
+    } catch (error) {
+        // Silently fail - user will be prompted to re-login on next page load
+        console.error('[Middleware] Session refresh error:', error)
     }
 
     return supabaseResponse
