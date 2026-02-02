@@ -29,18 +29,6 @@ export async function updateSession(request: NextRequest) {
         }
     )
 
-    // CRITICAL FIX: Check for session cookies instead of making API calls
-    // This prevents 504 Gateway Timeouts by avoiding network requests in middleware
-    const accessToken = request.cookies.get('sb-access-token')
-    const refreshToken = request.cookies.get('sb-refresh-token')
-
-    // Check for any Supabase auth cookie patterns (different naming in production)
-    const hasSupabaseSession = request.cookies.getAll().some(cookie =>
-        cookie.name.includes('sb-') && cookie.name.includes('-auth-token')
-    )
-
-    const isAuthenticated = accessToken || refreshToken || hasSupabaseSession
-
     // Define public routes that don't require authentication
     const isPublicRoute =
         request.nextUrl.pathname === '/' ||
@@ -49,21 +37,28 @@ export async function updateSession(request: NextRequest) {
         request.nextUrl.pathname.startsWith('/auth') ||
         request.nextUrl.pathname.startsWith('/android')
 
-    // Redirect unauthenticated users to login
-    if (!isAuthenticated && !isPublicRoute) {
+    // For public routes, just return immediately
+    if (isPublicRoute) {
+        return supabaseResponse
+    }
+
+    // For protected routes: check session from cookies (fast, no network call)
+    try {
+        const { data: { session } } = await supabase.auth.getSession()
+
+        if (!session) {
+            const url = request.nextUrl.clone()
+            url.pathname = '/login'
+            return NextResponse.redirect(url)
+        }
+    } catch (error) {
+        // If there's an error checking session, redirect to login
+        console.error('[Middleware] Session check error:', error)
         const url = request.nextUrl.clone()
         url.pathname = '/login'
         return NextResponse.redirect(url)
     }
 
-    // Refresh session in the background (returns immediately)
-    // This ensures tokens are kept fresh without blocking the request
-    try {
-        await supabase.auth.getSession()
-    } catch (error) {
-        // Silently fail - user will be prompted to re-login on next page load
-        console.error('[Middleware] Session refresh error:', error)
-    }
-
     return supabaseResponse
 }
+
